@@ -76,3 +76,28 @@ export async function exchangeCodeForTokens(
   return response.json()
 }
 
+export async function refreshAccessToken(
+  refreshToken: string
+): Promise<TokenResponse> {
+  const params = new URLSearchParams({
+    grant_type: 'refresh_token',
+    refresh_token: refreshToken,
+    client_id: DROPBOX_APP_KEY,
+  })
+
+  const response = await fetch('https://api.dropboxapi.com/oauth2/token', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+    },
+    body: params.toString(),
+  })
+
+  if (!response.ok) {
+    const error = await response.text()
+    throw new Error(`Token refresh failed: ${error}`)
+  }
+
+  return response.json()
+}
+

@@ -3,7 +3,16 @@ import AccountInfo from '../components/AccountInfo'
 import { useAuth } from '../context/AuthContext'
 
 function Home() {
-  const { isAuthenticated, logout } = useAuth()
+  const { isAuthenticated, isLoading, logout } = useAuth()
+
+  if (isLoading) {
+    return (
+      <main>
+        <h1>DropSidian</h1>
+        <p>Loading...</p>
+      </main>
+    )
+  }
 
   if (isAuthenticated) {
     return (
