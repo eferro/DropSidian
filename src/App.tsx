@@ -1,5 +1,6 @@
 import { HashRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { useEffect, useState } from 'react'
+import { AuthProvider } from './context/AuthContext'
 import Home from './pages/Home'
 import Callback from './pages/Callback'
 import NotFound from './pages/NotFound'
@@ -28,14 +29,16 @@ function OAuthRedirectHandler() {
 
 function App() {
   return (
-    <HashRouter>
-      <OAuthRedirectHandler />
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/callback" element={<Callback />} />
-        <Route path="*" element={<NotFound />} />
-      </Routes>
-    </HashRouter>
+    <AuthProvider>
+      <HashRouter>
+        <OAuthRedirectHandler />
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/callback" element={<Callback />} />
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </HashRouter>
+    </AuthProvider>
   )
 }
 

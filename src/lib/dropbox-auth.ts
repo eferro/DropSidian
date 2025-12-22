@@ -35,3 +35,44 @@ export async function buildAuthUrl(): Promise<string> {
   return `https://www.dropbox.com/oauth2/authorize?${params.toString()}`
 }
 
+export interface TokenResponse {
+  access_token: string
+  refresh_token: string
+  expires_in: number
+  token_type: string
+  account_id: string
+}
+
+export async function exchangeCodeForTokens(
+  code: string
+): Promise<TokenResponse> {
+  const verifier = getStoredCodeVerifier()
+  if (!verifier) {
+    throw new Error('No code verifier found')
+  }
+
+  const params = new URLSearchParams({
+    code,
+    grant_type: 'authorization_code',
+    code_verifier: verifier,
+    client_id: DROPBOX_APP_KEY,
+    redirect_uri: REDIRECT_URI,
+  })
+
+  const response = await fetch('https://api.dropboxapi.com/oauth2/token', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+    },
+    body: params.toString(),
+  })
+
+  if (!response.ok) {
+    const error = await response.text()
+    throw new Error(`Token exchange failed: ${error}`)
+  }
+
+  clearCodeVerifier()
+  return response.json()
+}
+
