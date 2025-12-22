@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, ReactNode } from 'react'
+import { storeRefreshToken, clearRefreshToken } from '../lib/token-storage'
 
 interface AuthState {
   accessToken: string | null
@@ -7,7 +8,11 @@ interface AuthState {
 }
 
 interface AuthContextType extends AuthState {
-  setTokens: (accessToken: string, accountId: string) => void
+  setTokens: (
+    accessToken: string,
+    refreshToken: string,
+    accountId: string
+  ) => void
   logout: () => void
 }
 
@@ -24,7 +29,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
     isAuthenticated: false,
   })
 
-  function setTokens(accessToken: string, accountId: string): void {
+  function setTokens(
+    accessToken: string,
+    refreshToken: string,
+    accountId: string
+  ): void {
+    storeRefreshToken(refreshToken)
     setAuthState({
       accessToken,
       accountId,
@@ -33,6 +43,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   }
 
   function logout(): void {
+    clearRefreshToken()
     setAuthState({
       accessToken: null,
       accountId: null,
@@ -54,4 +65,3 @@ export function useAuth(): AuthContextType {
   }
   return context
 }
-

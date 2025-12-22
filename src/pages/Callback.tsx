@@ -38,7 +38,7 @@ function Callback() {
 
     exchangeCodeForTokens(code)
       .then((tokens) => {
-        setTokens(tokens.access_token, tokens.account_id)
+        setTokens(tokens.access_token, tokens.refresh_token, tokens.account_id)
         navigate('/', { replace: true })
       })
       .catch((err) => {
