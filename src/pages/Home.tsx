@@ -1,4 +1,5 @@
 import ConnectDropboxButton from '../components/ConnectDropboxButton'
+import AccountInfo from '../components/AccountInfo'
 import { useAuth } from '../context/AuthContext'
 
 function Home() {
@@ -9,6 +10,7 @@ function Home() {
       <main>
         <h1>DropSidian</h1>
         <p>Connected to Dropbox ✓</p>
+        <AccountInfo />
         <button type="button" onClick={logout}>
           Disconnect
         </button>
