@@ -1,21 +1,40 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { exchangeCodeForTokens } from '../lib/dropbox-auth'
+import {
+  exchangeCodeForTokens,
+  getStoredCodeVerifier,
+} from '../lib/dropbox-auth'
 import { useAuth } from '../context/AuthContext'
+
+let isExchanging = false
 
 function Callback() {
   const [searchParams] = useSearchParams()
   const [error, setError] = useState<string | null>(null)
+  const [isProcessing, setIsProcessing] = useState(true)
   const navigate = useNavigate()
   const { setTokens } = useAuth()
 
   useEffect(() => {
+    if (isExchanging) {
+      return
+    }
+
     const code = searchParams.get('code')
 
     if (!code) {
       setError('No authorization code received')
+      setIsProcessing(false)
       return
     }
+
+    const verifier = getStoredCodeVerifier()
+    if (!verifier) {
+      setIsProcessing(false)
+      return
+    }
+
+    isExchanging = true
 
     exchangeCodeForTokens(code)
       .then((tokens) => {
@@ -24,6 +43,10 @@ function Callback() {
       })
       .catch((err) => {
         setError(err.message)
+        setIsProcessing(false)
+      })
+      .finally(() => {
+        isExchanging = false
       })
   }, [searchParams, setTokens, navigate])
 
@@ -33,6 +56,15 @@ function Callback() {
         <h1>Authentication Error</h1>
         <p>{error}</p>
         <a href="/">Go back home</a>
+      </main>
+    )
+  }
+
+  if (!isProcessing && !error) {
+    return (
+      <main>
+        <h1>Authentication Complete</h1>
+        <p>Redirecting...</p>
       </main>
     )
   }
