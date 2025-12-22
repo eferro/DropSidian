@@ -1,18 +1,21 @@
-.PHONY: help local-setup dev build preview lint type-check format validate clean
+.PHONY: help local-setup dev build preview lint type-check format test test-watch test-coverage validate clean
 
 # Default target
 help:
 	@echo "DropSidian - Available targets:"
 	@echo ""
-	@echo "  local-setup   Install dependencies and setup environment"
-	@echo "  dev           Start development server"
-	@echo "  build         Production build"
-	@echo "  preview       Preview production build"
-	@echo "  lint          Run ESLint"
-	@echo "  type-check    Run TypeScript compiler"
-	@echo "  format        Format code with Prettier"
-	@echo "  validate      Run all checks (lint, type-check)"
-	@echo "  clean         Remove build artifacts"
+	@echo "  local-setup    Install dependencies and setup environment"
+	@echo "  dev            Start development server"
+	@echo "  build          Production build"
+	@echo "  preview        Preview production build"
+	@echo "  lint           Run ESLint"
+	@echo "  type-check     Run TypeScript compiler"
+	@echo "  format         Format code with Prettier"
+	@echo "  test           Run tests once"
+	@echo "  test-watch     Run tests in watch mode (TDD)"
+	@echo "  test-coverage  Run tests with coverage report"
+	@echo "  validate       Run all checks (lint, type-check, test)"
+	@echo "  clean          Remove build artifacts"
 	@echo ""
 
 # Check Node.js version (requires >= 18)
@@ -51,11 +54,23 @@ type-check:
 format:
 	npm run format
 
+# Run tests once
+test:
+	npm test
+
+# Run tests in watch mode (for TDD)
+test-watch:
+	npm run test:watch
+
+# Run tests with coverage report
+test-coverage:
+	npm run test:coverage
+
 # Run all validation checks
-validate: lint type-check
+validate: lint type-check test
 	@echo "All checks passed!"
 
 # Clean build artifacts
 clean:
-	rm -rf dist node_modules/.cache
+	rm -rf dist node_modules/.cache coverage
 
