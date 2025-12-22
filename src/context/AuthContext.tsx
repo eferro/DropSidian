@@ -6,7 +6,7 @@ import {
   ReactNode,
 } from 'react'
 import { storeRefreshToken, clearRefreshToken, getRefreshToken } from '../lib/token-storage'
-import { refreshAccessToken } from '../lib/dropbox-auth'
+import { refreshAccessToken, revokeToken } from '../lib/dropbox-auth'
 
 interface AuthState {
   accessToken: string | null
@@ -21,7 +21,7 @@ interface AuthContextType extends AuthState {
     refreshToken: string,
     accountId: string
   ) => void
-  logout: () => void
+  logout: () => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextType | null>(null)
@@ -75,7 +75,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
     })
   }
 
-  function logout(): void {
+  async function logout(): Promise<void> {
+    if (authState.accessToken) {
+      await revokeToken(authState.accessToken).catch(() => {})
+    }
     clearRefreshToken()
     setAuthState({
       accessToken: null,

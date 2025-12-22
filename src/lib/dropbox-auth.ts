@@ -1,12 +1,35 @@
-import { generateCodeVerifier, generateCodeChallenge } from './pkce'
+import {
+  generateCodeVerifier,
+  generateCodeChallenge,
+  generateRandomString,
+} from './pkce'
 
 const DROPBOX_APP_KEY = import.meta.env.VITE_DROPBOX_APP_KEY as string
 const REDIRECT_URI = import.meta.env.VITE_REDIRECT_URI as string
 
 const CODE_VERIFIER_KEY = 'dropbox_code_verifier'
+const OAUTH_STATE_KEY = 'dropbox_oauth_state'
 
 export function storeCodeVerifier(verifier: string): void {
   sessionStorage.setItem(CODE_VERIFIER_KEY, verifier)
+}
+
+export function storeOAuthState(state: string): void {
+  sessionStorage.setItem(OAUTH_STATE_KEY, state)
+}
+
+export function getStoredOAuthState(): string | null {
+  return sessionStorage.getItem(OAUTH_STATE_KEY)
+}
+
+export function clearOAuthState(): void {
+  sessionStorage.removeItem(OAUTH_STATE_KEY)
+}
+
+export function validateOAuthState(state: string): boolean {
+  const storedState = getStoredOAuthState()
+  clearOAuthState()
+  return storedState !== null && storedState === state
 }
 
 export function getStoredCodeVerifier(): string | null {
@@ -20,8 +43,10 @@ export function clearCodeVerifier(): void {
 export async function buildAuthUrl(): Promise<string> {
   const verifier = generateCodeVerifier()
   const challenge = await generateCodeChallenge(verifier)
+  const state = generateRandomString(32)
 
   storeCodeVerifier(verifier)
+  storeOAuthState(state)
 
   const params = new URLSearchParams({
     client_id: DROPBOX_APP_KEY,
@@ -30,6 +55,7 @@ export async function buildAuthUrl(): Promise<string> {
     code_challenge_method: 'S256',
     redirect_uri: REDIRECT_URI,
     token_access_type: 'offline',
+    state,
   })
 
   return `https://www.dropbox.com/oauth2/authorize?${params.toString()}`
@@ -99,5 +125,14 @@ export async function refreshAccessToken(
   }
 
   return response.json()
+}
+
+export async function revokeToken(accessToken: string): Promise<void> {
+  await fetch('https://api.dropboxapi.com/2/auth/token/revoke', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
+  })
 }
 
