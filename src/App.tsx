@@ -10,10 +10,27 @@ function OAuthRedirectHandler() {
   const [callbackParams, setCallbackParams] = useState('')
 
   useEffect(() => {
+    console.log('[DropSidian Debug] OAuthRedirectHandler - checking URL:', {
+      href: window.location.href,
+      search: window.location.search,
+      hash: window.location.hash,
+      pathname: window.location.pathname,
+    })
+
     const params = new URLSearchParams(window.location.search)
     const code = params.get('code')
+    const error = params.get('error')
+    const errorDescription = params.get('error_description')
+
+    if (error) {
+      console.error('[DropSidian Debug] OAuth error in URL:', {
+        error,
+        errorDescription,
+      })
+    }
 
     if (code) {
+      console.log('[DropSidian Debug] OAuth code received, redirecting to callback')
       setCallbackParams(window.location.search)
       window.history.replaceState({}, '', window.location.pathname)
       setShouldRedirect(true)

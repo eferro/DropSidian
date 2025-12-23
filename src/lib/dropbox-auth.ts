@@ -7,6 +7,13 @@ import {
 const DROPBOX_APP_KEY = import.meta.env.VITE_DROPBOX_APP_KEY as string
 const REDIRECT_URI = import.meta.env.VITE_REDIRECT_URI as string
 
+console.log('[DropSidian Debug] Environment config:', {
+  DROPBOX_APP_KEY: DROPBOX_APP_KEY ? `${DROPBOX_APP_KEY.substring(0, 4)}...` : 'NOT SET',
+  REDIRECT_URI: REDIRECT_URI || 'NOT SET',
+  currentOrigin: typeof window !== 'undefined' ? window.location.origin : 'N/A',
+  currentHref: typeof window !== 'undefined' ? window.location.href : 'N/A',
+})
+
 const CODE_VERIFIER_KEY = 'dropbox_code_verifier'
 const OAUTH_STATE_KEY = 'dropbox_oauth_state'
 
@@ -58,7 +65,16 @@ export async function buildAuthUrl(): Promise<string> {
     state,
   })
 
-  return `https://www.dropbox.com/oauth2/authorize?${params.toString()}`
+  const authUrl = `https://www.dropbox.com/oauth2/authorize?${params.toString()}`
+  
+  console.log('[DropSidian Debug] buildAuthUrl:', {
+    redirect_uri: REDIRECT_URI,
+    client_id: DROPBOX_APP_KEY ? `${DROPBOX_APP_KEY.substring(0, 4)}...` : 'NOT SET',
+    state: state.substring(0, 8) + '...',
+    fullUrl: authUrl,
+  })
+
+  return authUrl
 }
 
 export interface TokenResponse {
