@@ -29,7 +29,11 @@ jobs:
       
       - run: npm ci
       
-      - run: npm run build
+      - name: Build
+        run: npm run build
+        env:
+          VITE_DROPBOX_APP_KEY: ${{ secrets.VITE_DROPBOX_APP_KEY }}
+          VITE_REDIRECT_URI: ${{ secrets.VITE_REDIRECT_URI }}
       
       - uses: actions/configure-pages@v4
       
