@@ -1,10 +1,16 @@
 import { useEffect, useState } from 'react'
+import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
 import { downloadFile } from '../lib/dropbox-client'
 import { useAuth } from '../context/AuthContext'
 
 interface NotePreviewProps {
   filePath: string
   onClose: () => void
+}
+
+function removeExtension(filename: string): string {
+  return filename.replace(/\.md$/, '')
 }
 
 function NotePreview({ filePath, onClose }: NotePreviewProps) {
@@ -50,11 +56,15 @@ function NotePreview({ filePath, onClose }: NotePreviewProps) {
 
   return (
     <div>
-      <h2>{fileName}</h2>
+      <h2>{removeExtension(fileName)}</h2>
       <button type="button" onClick={onClose}>
         Close
       </button>
-      <pre>{content}</pre>
+      <article>
+        <ReactMarkdown remarkPlugins={[remarkGfm]}>
+          {content ?? ''}
+        </ReactMarkdown>
+      </article>
     </div>
   )
 }

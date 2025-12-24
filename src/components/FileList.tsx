@@ -1,10 +1,18 @@
 import { useEffect, useState } from 'react'
-import { listFolder, DropboxEntry } from '../lib/dropbox-client'
+import { listAllFiles, DropboxEntry } from '../lib/dropbox-client'
 import { useAuth } from '../context/AuthContext'
 
 interface FileListProps {
   vaultPath: string
   onFileSelect: (path: string) => void
+}
+
+function isMarkdownFile(entry: DropboxEntry): boolean {
+  return entry['.tag'] === 'file' && entry.name.endsWith('.md')
+}
+
+function removeExtension(filename: string): string {
+  return filename.replace(/\.md$/, '')
 }
 
 function FileList({ vaultPath, onFileSelect }: FileListProps) {
@@ -20,9 +28,10 @@ function FileList({ vaultPath, onFileSelect }: FileListProps) {
     }
 
     setLoading(true)
-    listFolder(accessToken, vaultPath)
-      .then((response) => {
-        setEntries(response.entries)
+    listAllFiles(accessToken, vaultPath)
+      .then((allEntries) => {
+        const markdownFiles = allEntries.filter(isMarkdownFile)
+        setEntries(markdownFiles)
         setLoading(false)
       })
       .catch((err) => {
@@ -40,26 +49,18 @@ function FileList({ vaultPath, onFileSelect }: FileListProps) {
   }
 
   if (entries.length === 0) {
-    return <p>No files found in vault.</p>
+    return <p>No markdown files found in vault.</p>
   }
 
   return (
     <div>
-      <p>{entries.length} items</p>
+      <p>{entries.length} notes</p>
       <ul>
         {entries.map((entry) => (
           <li key={entry.id}>
-            {entry['.tag'] === 'folder' ? '📁' : '📄'}{' '}
-            {entry['.tag'] === 'file' && entry.name.endsWith('.md') ? (
-              <button
-                type="button"
-                onClick={() => onFileSelect(entry.path_display)}
-              >
-                {entry.name}
-              </button>
-            ) : (
-              entry.name
-            )}
+            <button type="button" onClick={() => onFileSelect(entry.path_display)}>
+              {removeExtension(entry.name)}
+            </button>
           </li>
         ))}
       </ul>

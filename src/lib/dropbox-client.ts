@@ -43,10 +43,17 @@ export interface ListFolderResponse {
   has_more: boolean
 }
 
+export interface ListFolderOptions {
+  recursive?: boolean
+}
+
 export async function listFolder(
   accessToken: string,
-  path: string
+  path: string,
+  options: ListFolderOptions = {}
 ): Promise<ListFolderResponse> {
+  const { recursive = false } = options
+
   const response = await fetch(
     'https://api.dropboxapi.com/2/files/list_folder',
     {
@@ -57,7 +64,7 @@ export async function listFolder(
       },
       body: JSON.stringify({
         path: path === '/' ? '' : path,
-        recursive: false,
+        recursive,
         include_media_info: false,
       }),
     }
@@ -69,6 +76,47 @@ export async function listFolder(
   }
 
   return response.json()
+}
+
+export async function listFolderContinue(
+  accessToken: string,
+  cursor: string
+): Promise<ListFolderResponse> {
+  const response = await fetch(
+    'https://api.dropboxapi.com/2/files/list_folder/continue',
+    {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ cursor }),
+    }
+  )
+
+  if (!response.ok) {
+    const error = await response.text()
+    throw new Error(`Failed to continue listing folder: ${error}`)
+  }
+
+  return response.json()
+}
+
+export async function listAllFiles(
+  accessToken: string,
+  path: string
+): Promise<DropboxEntry[]> {
+  const allEntries: DropboxEntry[] = []
+
+  let response = await listFolder(accessToken, path, { recursive: true })
+  allEntries.push(...response.entries)
+
+  while (response.has_more) {
+    response = await listFolderContinue(accessToken, response.cursor)
+    allEntries.push(...response.entries)
+  }
+
+  return allEntries
 }
 
 export async function downloadFile(

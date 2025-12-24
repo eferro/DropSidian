@@ -3,8 +3,13 @@ import {
   storeOAuthState,
   getStoredOAuthState,
   clearOAuthState,
+  storeCodeVerifier,
+  getStoredCodeVerifier,
+  clearCodeVerifier,
   buildAuthUrl,
   validateOAuthState,
+  exchangeCodeForTokens,
+  refreshAccessToken,
   revokeToken,
 } from './dropbox-auth'
 
@@ -27,6 +32,30 @@ describe('OAuth state management', () => {
 
     clearOAuthState()
     const retrieved = getStoredOAuthState()
+
+    expect(retrieved).toBeNull()
+  })
+})
+
+describe('code verifier management', () => {
+  beforeEach(() => {
+    sessionStorage.clear()
+  })
+
+  it('stores and retrieves code verifier', () => {
+    const verifier = 'test-verifier-abc123'
+
+    storeCodeVerifier(verifier)
+    const retrieved = getStoredCodeVerifier()
+
+    expect(retrieved).toBe(verifier)
+  })
+
+  it('clears code verifier', () => {
+    storeCodeVerifier('verifier-to-clear')
+
+    clearCodeVerifier()
+    const retrieved = getStoredCodeVerifier()
 
     expect(retrieved).toBeNull()
   })
@@ -84,6 +113,92 @@ describe('validateOAuthState', () => {
     const storedAfter = getStoredOAuthState()
 
     expect(storedAfter).toBeNull()
+  })
+})
+
+describe('exchangeCodeForTokens', () => {
+  beforeEach(() => {
+    sessionStorage.clear()
+    vi.restoreAllMocks()
+  })
+
+  it('throws error when no code verifier is stored', async () => {
+    await expect(exchangeCodeForTokens('some-code')).rejects.toThrow(
+      'No code verifier found'
+    )
+  })
+
+  it('exchanges code for tokens successfully', async () => {
+    const mockTokenResponse = {
+      access_token: 'test-access-token',
+      refresh_token: 'test-refresh-token',
+      expires_in: 14400,
+      token_type: 'bearer',
+      account_id: 'dbid:test-account',
+    }
+    vi.spyOn(global, 'fetch').mockResolvedValue(
+      new Response(JSON.stringify(mockTokenResponse), { status: 200 })
+    )
+    storeCodeVerifier('test-verifier')
+
+    const result = await exchangeCodeForTokens('auth-code')
+
+    expect(result).toEqual(mockTokenResponse)
+  })
+
+  it('clears code verifier after successful exchange', async () => {
+    vi.spyOn(global, 'fetch').mockResolvedValue(
+      new Response(JSON.stringify({ access_token: 'token' }), { status: 200 })
+    )
+    storeCodeVerifier('verifier-to-clear')
+
+    await exchangeCodeForTokens('auth-code')
+
+    expect(getStoredCodeVerifier()).toBeNull()
+  })
+
+  it('throws error when API returns error response', async () => {
+    vi.spyOn(global, 'fetch').mockResolvedValue(
+      new Response('invalid_grant', { status: 400 })
+    )
+    storeCodeVerifier('test-verifier')
+
+    await expect(exchangeCodeForTokens('bad-code')).rejects.toThrow(
+      'Token exchange failed: invalid_grant'
+    )
+  })
+})
+
+describe('refreshAccessToken', () => {
+  beforeEach(() => {
+    vi.restoreAllMocks()
+  })
+
+  it('refreshes access token successfully', async () => {
+    const mockTokenResponse = {
+      access_token: 'new-access-token',
+      refresh_token: 'new-refresh-token',
+      expires_in: 14400,
+      token_type: 'bearer',
+      account_id: 'dbid:test-account',
+    }
+    vi.spyOn(global, 'fetch').mockResolvedValue(
+      new Response(JSON.stringify(mockTokenResponse), { status: 200 })
+    )
+
+    const result = await refreshAccessToken('old-refresh-token')
+
+    expect(result).toEqual(mockTokenResponse)
+  })
+
+  it('throws error when API returns error response', async () => {
+    vi.spyOn(global, 'fetch').mockResolvedValue(
+      new Response('invalid_grant', { status: 400 })
+    )
+
+    await expect(refreshAccessToken('expired-token')).rejects.toThrow(
+      'Token refresh failed: invalid_grant'
+    )
   })
 })
 

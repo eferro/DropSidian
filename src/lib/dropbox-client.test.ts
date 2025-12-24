@@ -1,0 +1,207 @@
+import { describe, it, expect, beforeEach, vi } from 'vitest'
+import {
+  getCurrentAccount,
+  listFolder,
+  listFolderContinue,
+  listAllFiles,
+  downloadFile,
+} from './dropbox-client'
+
+describe('getCurrentAccount', () => {
+  beforeEach(() => {
+    vi.restoreAllMocks()
+  })
+
+  it('returns account data on success', async () => {
+    const mockAccount = {
+      account_id: 'dbid:test-123',
+      email: 'test@example.com',
+      name: {
+        display_name: 'Test User',
+        given_name: 'Test',
+        surname: 'User',
+      },
+    }
+    vi.spyOn(global, 'fetch').mockResolvedValue(
+      new Response(JSON.stringify(mockAccount), { status: 200 })
+    )
+
+    const result = await getCurrentAccount('test-access-token')
+
+    expect(result).toEqual(mockAccount)
+  })
+
+  it('throws error on API failure', async () => {
+    vi.spyOn(global, 'fetch').mockResolvedValue(
+      new Response('Unauthorized', { status: 401 })
+    )
+
+    await expect(getCurrentAccount('invalid-token')).rejects.toThrow(
+      'Failed to get account info: Unauthorized'
+    )
+  })
+})
+
+describe('listFolder', () => {
+  beforeEach(() => {
+    vi.restoreAllMocks()
+  })
+
+  it('returns folder entries on success', async () => {
+    const mockResponse = {
+      entries: [
+        {
+          '.tag': 'file',
+          name: 'note.md',
+          path_lower: '/vault/note.md',
+          path_display: '/Vault/note.md',
+          id: 'id:file-123',
+        },
+      ],
+      cursor: 'cursor-abc',
+      has_more: false,
+    }
+    vi.spyOn(global, 'fetch').mockResolvedValue(
+      new Response(JSON.stringify(mockResponse), { status: 200 })
+    )
+
+    const result = await listFolder('token', '/Vault')
+
+    expect(result).toEqual(mockResponse)
+  })
+
+  it('sends empty path for root folder', async () => {
+    const mockFetch = vi.spyOn(global, 'fetch').mockResolvedValue(
+      new Response(JSON.stringify({ entries: [], cursor: '', has_more: false }), { status: 200 })
+    )
+
+    await listFolder('token', '/')
+
+    expect(mockFetch).toHaveBeenCalledWith(
+      'https://api.dropboxapi.com/2/files/list_folder',
+      expect.objectContaining({
+        body: expect.stringContaining('"path":""'),
+      })
+    )
+  })
+
+  it('throws error on API failure', async () => {
+    vi.spyOn(global, 'fetch').mockResolvedValue(
+      new Response('Not found', { status: 404 })
+    )
+
+    await expect(listFolder('token', '/invalid')).rejects.toThrow(
+      'Failed to list folder: Not found'
+    )
+  })
+})
+
+describe('listFolderContinue', () => {
+  beforeEach(() => {
+    vi.restoreAllMocks()
+  })
+
+  it('continues listing with cursor', async () => {
+    const mockResponse = {
+      entries: [
+        { '.tag': 'file', name: 'b.md', path_lower: '/b.md', path_display: '/b.md', id: 'id:2' },
+      ],
+      cursor: 'cursor-2',
+      has_more: false,
+    }
+    vi.spyOn(global, 'fetch').mockResolvedValue(
+      new Response(JSON.stringify(mockResponse), { status: 200 })
+    )
+
+    const result = await listFolderContinue('token', 'cursor-1')
+
+    expect(result).toEqual(mockResponse)
+  })
+
+  it('throws error on API failure', async () => {
+    vi.spyOn(global, 'fetch').mockResolvedValue(
+      new Response('Invalid cursor', { status: 400 })
+    )
+
+    await expect(listFolderContinue('token', 'bad-cursor')).rejects.toThrow(
+      'Failed to continue listing folder: Invalid cursor'
+    )
+  })
+})
+
+describe('listAllFiles', () => {
+  beforeEach(() => {
+    vi.restoreAllMocks()
+  })
+
+  it('returns all entries when no pagination needed', async () => {
+    const mockResponse = {
+      entries: [
+        { '.tag': 'file', name: 'a.md', path_lower: '/a.md', path_display: '/a.md', id: 'id:1' },
+      ],
+      cursor: 'cursor-1',
+      has_more: false,
+    }
+    vi.spyOn(global, 'fetch').mockResolvedValue(
+      new Response(JSON.stringify(mockResponse), { status: 200 })
+    )
+
+    const result = await listAllFiles('token', '/vault')
+
+    expect(result).toHaveLength(1)
+    expect(result[0].name).toBe('a.md')
+  })
+
+  it('collects all entries when pagination required', async () => {
+    const firstResponse = {
+      entries: [
+        { '.tag': 'file', name: 'a.md', path_lower: '/a.md', path_display: '/a.md', id: 'id:1' },
+      ],
+      cursor: 'cursor-1',
+      has_more: true,
+    }
+    const secondResponse = {
+      entries: [
+        { '.tag': 'file', name: 'b.md', path_lower: '/b.md', path_display: '/b.md', id: 'id:2' },
+      ],
+      cursor: 'cursor-2',
+      has_more: false,
+    }
+    vi.spyOn(global, 'fetch')
+      .mockResolvedValueOnce(new Response(JSON.stringify(firstResponse), { status: 200 }))
+      .mockResolvedValueOnce(new Response(JSON.stringify(secondResponse), { status: 200 }))
+
+    const result = await listAllFiles('token', '/vault')
+
+    expect(result).toHaveLength(2)
+    expect(result[0].name).toBe('a.md')
+    expect(result[1].name).toBe('b.md')
+  })
+})
+
+describe('downloadFile', () => {
+  beforeEach(() => {
+    vi.restoreAllMocks()
+  })
+
+  it('returns file content on success', async () => {
+    const fileContent = '# Hello World\n\nThis is a note.'
+    vi.spyOn(global, 'fetch').mockResolvedValue(
+      new Response(fileContent, { status: 200 })
+    )
+
+    const result = await downloadFile('token', '/Vault/note.md')
+
+    expect(result).toBe(fileContent)
+  })
+
+  it('throws error on API failure', async () => {
+    vi.spyOn(global, 'fetch').mockResolvedValue(
+      new Response('File not found', { status: 404 })
+    )
+
+    await expect(downloadFile('token', '/invalid.md')).rejects.toThrow(
+      'Failed to download file: File not found'
+    )
+  })
+})
