@@ -142,6 +142,44 @@ export async function downloadFile(
   return response.text()
 }
 
+export interface FileWithMetadata {
+  content: string
+  rev: string
+  name: string
+  path_display: string
+}
+
+export async function downloadFileWithMetadata(
+  accessToken: string,
+  path: string
+): Promise<FileWithMetadata> {
+  const response = await fetch(
+    'https://content.dropboxapi.com/2/files/download',
+    {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        'Dropbox-API-Arg': JSON.stringify({ path }),
+      },
+    }
+  )
+
+  if (!response.ok) {
+    const error = await response.text()
+    throw new Error(`Failed to download file: ${error}`)
+  }
+
+  const metadata = JSON.parse(response.headers.get('Dropbox-API-Result') ?? '{}')
+  const content = await response.text()
+
+  return {
+    content,
+    rev: metadata.rev,
+    name: metadata.name,
+    path_display: metadata.path_display,
+  }
+}
+
 export interface UploadFileResponse {
   name: string
   path_lower: string
@@ -170,6 +208,46 @@ export async function uploadFile(
   if (!response.ok) {
     const error = await response.text()
     throw new Error(`Failed to upload file: ${error}`)
+  }
+
+  return response.json()
+}
+
+export interface UpdateFileResponse {
+  name: string
+  path_display: string
+  rev: string
+}
+
+export async function updateFile(
+  accessToken: string,
+  path: string,
+  content: string,
+  rev: string
+): Promise<UpdateFileResponse> {
+  const response = await fetch(
+    'https://content.dropboxapi.com/2/files/upload',
+    {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        'Dropbox-API-Arg': JSON.stringify({
+          path,
+          mode: { '.tag': 'update', update: rev },
+        }),
+        'Content-Type': 'application/octet-stream',
+      },
+      body: content,
+    }
+  )
+
+  if (response.status === 409) {
+    throw new Error('Conflict: file was modified')
+  }
+
+  if (!response.ok) {
+    const error = await response.text()
+    throw new Error(`Failed to update file: ${error}`)
   }
 
   return response.json()

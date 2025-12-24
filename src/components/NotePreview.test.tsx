@@ -8,7 +8,8 @@ vi.mock('../context/AuthContext', () => ({
 }))
 
 vi.mock('../lib/dropbox-client', () => ({
-  downloadFile: vi.fn(),
+  downloadFileWithMetadata: vi.fn(),
+  updateFile: vi.fn(),
 }))
 
 vi.mock('react-markdown', () => ({
@@ -20,7 +21,11 @@ vi.mock('remark-gfm', () => ({
 }))
 
 import { useAuth } from '../context/AuthContext'
-import { downloadFile } from '../lib/dropbox-client'
+import { downloadFileWithMetadata, updateFile } from '../lib/dropbox-client'
+
+function mockFileResponse(content: string, rev = 'rev-123') {
+  return { content, rev, name: 'note.md', path_display: '/vault/note.md' }
+}
 
 describe('NotePreview', () => {
   const mockOnClose = vi.fn()
@@ -38,7 +43,7 @@ describe('NotePreview', () => {
   })
 
   it('shows loading state initially', () => {
-    vi.mocked(downloadFile).mockReturnValue(new Promise(() => {}))
+    vi.mocked(downloadFileWithMetadata).mockReturnValue(new Promise(() => {}))
 
     render(<NotePreview filePath="/vault/note.md" onClose={mockOnClose} />)
 
@@ -46,7 +51,9 @@ describe('NotePreview', () => {
   })
 
   it('shows note content on success', async () => {
-    vi.mocked(downloadFile).mockResolvedValue('# Hello World\n\nThis is content.')
+    vi.mocked(downloadFileWithMetadata).mockResolvedValue(
+      mockFileResponse('# Hello World\n\nThis is content.')
+    )
 
     render(<NotePreview filePath="/vault/note.md" onClose={mockOnClose} />)
 
@@ -57,7 +64,7 @@ describe('NotePreview', () => {
   })
 
   it('removes .md extension from title', async () => {
-    vi.mocked(downloadFile).mockResolvedValue('content')
+    vi.mocked(downloadFileWithMetadata).mockResolvedValue(mockFileResponse('content'))
 
     render(<NotePreview filePath="/vault/my-note.md" onClose={mockOnClose} />)
 
@@ -67,7 +74,7 @@ describe('NotePreview', () => {
   })
 
   it('shows error on failure', async () => {
-    vi.mocked(downloadFile).mockRejectedValue(new Error('Download failed'))
+    vi.mocked(downloadFileWithMetadata).mockRejectedValue(new Error('Download failed'))
 
     render(<NotePreview filePath="/vault/note.md" onClose={mockOnClose} />)
 
@@ -77,7 +84,7 @@ describe('NotePreview', () => {
   })
 
   it('calls onClose when clicking close button', async () => {
-    vi.mocked(downloadFile).mockResolvedValue('content')
+    vi.mocked(downloadFileWithMetadata).mockResolvedValue(mockFileResponse('content'))
     const user = userEvent.setup()
 
     render(<NotePreview filePath="/vault/note.md" onClose={mockOnClose} />)
@@ -92,7 +99,7 @@ describe('NotePreview', () => {
   })
 
   it('shows close button on error state', async () => {
-    vi.mocked(downloadFile).mockRejectedValue(new Error('Error'))
+    vi.mocked(downloadFileWithMetadata).mockRejectedValue(new Error('Error'))
     const user = userEvent.setup()
 
     render(<NotePreview filePath="/vault/note.md" onClose={mockOnClose} />)
@@ -121,7 +128,69 @@ describe('NotePreview', () => {
     await waitFor(() => {
       expect(screen.queryByText('Loading note...')).not.toBeInTheDocument()
     })
-    expect(downloadFile).not.toHaveBeenCalled()
+    expect(downloadFileWithMetadata).not.toHaveBeenCalled()
+  })
+
+  it('shows edit button and switches to edit mode', async () => {
+    vi.mocked(downloadFileWithMetadata).mockResolvedValue(mockFileResponse('# Content'))
+    const user = userEvent.setup()
+
+    render(<NotePreview filePath="/vault/note.md" onClose={mockOnClose} />)
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /edit/i })).toBeInTheDocument()
+    })
+
+    await user.click(screen.getByRole('button', { name: /edit/i }))
+
+    expect(screen.getByRole('textbox')).toHaveValue('# Content')
+    expect(screen.getByRole('button', { name: /save/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /cancel/i })).toBeInTheDocument()
+  })
+
+  it('saves changes and returns to view mode', async () => {
+    vi.mocked(downloadFileWithMetadata).mockResolvedValue(mockFileResponse('# Old', 'rev-1'))
+    vi.mocked(updateFile).mockResolvedValue({
+      name: 'note.md',
+      path_display: '/vault/note.md',
+      rev: 'rev-2',
+    })
+    const user = userEvent.setup()
+
+    render(<NotePreview filePath="/vault/note.md" onClose={mockOnClose} />)
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /edit/i })).toBeInTheDocument()
+    })
+
+    await user.click(screen.getByRole('button', { name: /edit/i }))
+    await user.clear(screen.getByRole('textbox'))
+    await user.type(screen.getByRole('textbox'), '# New')
+    await user.click(screen.getByRole('button', { name: /save/i }))
+
+    await waitFor(() => {
+      expect(screen.queryByRole('textbox')).not.toBeInTheDocument()
+    })
+    expect(updateFile).toHaveBeenCalledWith('test-token', '/vault/note.md', '# New', 'rev-1')
+  })
+
+  it('shows conflict error when save fails with 409', async () => {
+    vi.mocked(downloadFileWithMetadata).mockResolvedValue(mockFileResponse('content', 'rev-1'))
+    vi.mocked(updateFile).mockRejectedValue(new Error('Conflict: file was modified'))
+    const user = userEvent.setup()
+
+    render(<NotePreview filePath="/vault/note.md" onClose={mockOnClose} />)
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /edit/i })).toBeInTheDocument()
+    })
+
+    await user.click(screen.getByRole('button', { name: /edit/i }))
+    await user.click(screen.getByRole('button', { name: /save/i }))
+
+    await waitFor(() => {
+      expect(screen.getByText(/Conflict/)).toBeInTheDocument()
+    })
   })
 })
 

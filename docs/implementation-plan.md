@@ -14,7 +14,7 @@
 | H0.3 | Vault file access proof | ✅ Completed |
 | H1 | Browse + Read | ✅ Completed |
 | H2 | Create note (Inbox) | ✅ Completed |
-| H3 | Edit + Save | ⬜ Not started |
+| H3 | Edit + Save | ✅ Completed |
 | H4 | Wikilinks | ⬜ Not started |
 | H5 | Attachments | ⬜ Not started |
 | H6 | Search | ⬜ Not started |

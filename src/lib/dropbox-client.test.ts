@@ -5,7 +5,9 @@ import {
   listFolderContinue,
   listAllFiles,
   downloadFile,
+  downloadFileWithMetadata,
   uploadFile,
+  updateFile,
 } from './dropbox-client'
 
 describe('getCurrentAccount', () => {
@@ -245,3 +247,70 @@ describe('uploadFile', () => {
     )
   })
 })
+
+describe('downloadFileWithMetadata', () => {
+  beforeEach(() => {
+    vi.restoreAllMocks()
+  })
+
+  it('returns content and metadata including rev', async () => {
+    const fileContent = '# My Note'
+    const metadata = {
+      name: 'note.md',
+      path_display: '/Vault/note.md',
+      rev: 'abc123rev',
+    }
+    vi.spyOn(global, 'fetch').mockResolvedValue(
+      new Response(fileContent, {
+        status: 200,
+        headers: { 'Dropbox-API-Result': JSON.stringify(metadata) },
+      })
+    )
+
+    const result = await downloadFileWithMetadata('token', '/Vault/note.md')
+
+    expect(result.content).toBe('# My Note')
+    expect(result.rev).toBe('abc123rev')
+  })
+})
+
+describe('updateFile', () => {
+  beforeEach(() => {
+    vi.restoreAllMocks()
+  })
+
+  it('updates file with rev for conflict prevention', async () => {
+    const mockResponse = {
+      name: 'note.md',
+      path_display: '/Vault/note.md',
+      rev: 'newrev456',
+    }
+    const fetchSpy = vi.spyOn(global, 'fetch').mockResolvedValue(
+      new Response(JSON.stringify(mockResponse), { status: 200 })
+    )
+
+    const result = await updateFile('token', '/Vault/note.md', '# Updated', 'oldrev123')
+
+    expect(fetchSpy).toHaveBeenCalledWith(
+      'https://content.dropboxapi.com/2/files/upload',
+      expect.objectContaining({
+        body: '# Updated',
+      })
+    )
+    const headers = (fetchSpy.mock.calls[0][1] as RequestInit).headers as Record<string, string>
+    const callArg = JSON.parse(headers['Dropbox-API-Arg'])
+    expect(callArg.mode).toEqual({ '.tag': 'update', update: 'oldrev123' })
+    expect(result.rev).toBe('newrev456')
+  })
+
+  it('throws ConflictError on 409 response', async () => {
+    vi.spyOn(global, 'fetch').mockResolvedValue(
+      new Response('conflict', { status: 409 })
+    )
+
+    await expect(updateFile('token', '/note.md', 'content', 'oldrev')).rejects.toThrow(
+      'Conflict: file was modified'
+    )
+  })
+})
+

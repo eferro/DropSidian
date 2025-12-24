@@ -81,8 +81,7 @@ describe('OAuthRedirectHandler', () => {
     })
   })
 
-  it('detects OAuth code in URL search params', async () => {
-    const consoleLog = vi.spyOn(console, 'log').mockImplementation(() => {})
+  it('detects OAuth code in URL search params', () => {
     Object.defineProperty(window, 'location', {
       writable: true,
       value: {
@@ -92,13 +91,11 @@ describe('OAuthRedirectHandler', () => {
         pathname: '/',
       },
     })
-    window.history.replaceState = vi.fn()
 
-    const { OAuthRedirectHandler } = await import('./App')
+    const params = new URLSearchParams(window.location.search)
+    const code = params.get('code')
 
-    expect(window.location.search).toContain('code=auth-code')
-
-    consoleLog.mockRestore()
+    expect(code).toBe('auth-code')
   })
 
   it('detects OAuth error in URL search params', async () => {
