@@ -24,6 +24,7 @@ vi.mock('../lib/dropbox-auth', () => ({
   validateOAuthState: vi.fn(),
   getStoredCodeVerifier: vi.fn(),
   exchangeCodeForTokens: vi.fn(),
+  clearOAuthState: vi.fn(),
 }))
 
 import { validateOAuthState, getStoredCodeVerifier, exchangeCodeForTokens } from '../lib/dropbox-auth'

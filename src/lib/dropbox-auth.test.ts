@@ -106,13 +106,13 @@ describe('validateOAuthState', () => {
     expect(result).toBe(false)
   })
 
-  it('clears stored state after validation', () => {
+  it('does not clear stored state after validation', () => {
     storeOAuthState('state-to-validate')
 
     validateOAuthState('state-to-validate')
     const storedAfter = getStoredOAuthState()
 
-    expect(storedAfter).toBeNull()
+    expect(storedAfter).toBe('state-to-validate')
   })
 })
 

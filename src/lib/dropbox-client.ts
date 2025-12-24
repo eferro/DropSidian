@@ -142,3 +142,36 @@ export async function downloadFile(
   return response.text()
 }
 
+export interface UploadFileResponse {
+  name: string
+  path_lower: string
+  path_display: string
+  id: string
+}
+
+export async function uploadFile(
+  accessToken: string,
+  path: string,
+  content: string
+): Promise<UploadFileResponse> {
+  const response = await fetch(
+    'https://content.dropboxapi.com/2/files/upload',
+    {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        'Dropbox-API-Arg': JSON.stringify({ path, mode: 'add' }),
+        'Content-Type': 'application/octet-stream',
+      },
+      body: content,
+    }
+  )
+
+  if (!response.ok) {
+    const error = await response.text()
+    throw new Error(`Failed to upload file: ${error}`)
+  }
+
+  return response.json()
+}
+

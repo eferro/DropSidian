@@ -5,6 +5,7 @@ import {
   listFolderContinue,
   listAllFiles,
   downloadFile,
+  uploadFile,
 } from './dropbox-client'
 
 describe('getCurrentAccount', () => {
@@ -202,6 +203,45 @@ describe('downloadFile', () => {
 
     await expect(downloadFile('token', '/invalid.md')).rejects.toThrow(
       'Failed to download file: File not found'
+    )
+  })
+})
+
+describe('uploadFile', () => {
+  beforeEach(() => {
+    vi.restoreAllMocks()
+  })
+
+  it('uploads file content to specified path', async () => {
+    const mockResponse = {
+      name: 'new-note.md',
+      path_lower: '/vault/inbox/new-note.md',
+      path_display: '/Vault/Inbox/new-note.md',
+      id: 'id:uploaded-123',
+    }
+    const fetchSpy = vi.spyOn(global, 'fetch').mockResolvedValue(
+      new Response(JSON.stringify(mockResponse), { status: 200 })
+    )
+
+    const result = await uploadFile('token', '/Vault/Inbox/new-note.md', '# New Note')
+
+    expect(fetchSpy).toHaveBeenCalledWith(
+      'https://content.dropboxapi.com/2/files/upload',
+      expect.objectContaining({
+        method: 'POST',
+        body: '# New Note',
+      })
+    )
+    expect(result.path_display).toBe('/Vault/Inbox/new-note.md')
+  })
+
+  it('throws error on API failure', async () => {
+    vi.spyOn(global, 'fetch').mockResolvedValue(
+      new Response('Path not found', { status: 409 })
+    )
+
+    await expect(uploadFile('token', '/invalid/path.md', 'content')).rejects.toThrow(
+      'Failed to upload file: Path not found'
     )
   })
 })

@@ -35,7 +35,6 @@ export function clearOAuthState(): void {
 
 export function validateOAuthState(state: string): boolean {
   const storedState = getStoredOAuthState()
-  clearOAuthState()
   return storedState !== null && storedState === state
 }
 

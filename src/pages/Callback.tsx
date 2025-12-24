@@ -4,6 +4,7 @@ import {
   exchangeCodeForTokens,
   getStoredCodeVerifier,
   validateOAuthState,
+  clearOAuthState,
 } from '../lib/dropbox-auth'
 import { useAuth } from '../context/AuthContext'
 
@@ -75,6 +76,7 @@ function Callback() {
     exchangeCodeForTokens(code)
       .then((tokens) => {
         console.log('[DropSidian Debug] Callback - token exchange successful')
+        clearOAuthState()
         setTokens(tokens.access_token, tokens.refresh_token, tokens.account_id)
         navigate('/', { replace: true })
       })

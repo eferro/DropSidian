@@ -8,9 +8,9 @@ This document outlines the test coverage strategy for DropSidian, prioritizing c
 
 | Metric | Value |
 |--------|-------|
-| Total Tests | 72 |
-| Statement Coverage | 86.2% |
-| Branch Coverage | 94.13% |
+| Total Tests | 85 |
+| Statement Coverage | 91.02% |
+| Branch Coverage | 95.56% |
 
 ## Coverage by Layer
 
@@ -18,10 +18,11 @@ This document outlines the test coverage strategy for DropSidian, prioritizing c
 |-------|----------|--------|
 | `src/lib/` | 100% | ✅ Complete |
 | `src/context/` | 100% | ✅ Complete |
-| `src/components/` | 97.78% | ✅ Complete |
-| `src/pages/Callback.tsx` | 86.17% | ✅ Complete |
-| `src/pages/` (others) | 0% | ⏳ Deferred |
-| `src/App.tsx` | 0% | ⏳ Deferred |
+| `src/components/` | 100% | ✅ Complete |
+| `src/pages/` | 100%* | ✅ Complete |
+| `src/App.tsx` | 0% | ⏳ Deferred (E2E candidate) |
+
+*Excluding App.tsx which is router configuration
 
 ---
 
@@ -60,14 +61,20 @@ Display-only components with minimal logic.
 | `components/NotePreview.tsx` | 100% | 7 |
 | `pages/Home.tsx` | 0% | Deferred - orchestration only |
 
-### Tier 4 — Intentionally Not Tested
+### Tier 4 — Simple Components ✅ COMPLETED
 
-Low-value code that doesn't justify test investment.
+Originally deferred but now tested for completeness.
+
+| File | Coverage | Tests |
+|------|----------|-------|
+| `pages/NotFound.tsx` | 100% | 2 |
+| `components/ConnectDropboxButton.tsx` | 100% | 2 |
+| `pages/Home.tsx` | 100% | 7 |
+
+### Tier 5 — Intentionally Not Tested
 
 | File | Reason |
 |------|--------|
-| `pages/NotFound.tsx` | Trivial static component (5 lines, no logic) |
-| `components/ConnectDropboxButton.tsx` | Thin wrapper, navigation-only |
 | `App.tsx` | Router configuration, E2E test candidate |
 | Config files (`vite.config.ts`, etc.) | Infrastructure, excluded from coverage |
 
@@ -189,6 +196,28 @@ Low-value code that doesn't justify test investment.
 6. Shows close button on error state
 7. Does not load when no access token
 
+### Phase 8: Tier 4 Components ✅
+
+#### `ConnectDropboxButton.tsx`
+
+1. Renders connect button
+2. Redirects to auth URL when clicked
+
+#### `NotFound.tsx`
+
+1. Renders 404 message
+2. Shows link to home page
+
+#### `Home.tsx`
+
+1. Shows loading state when auth is loading
+2. Shows connect button when not authenticated
+3. Shows authenticated view with vault selector
+4. Calls logout when disconnect button is clicked
+5. Shows file list after vault is selected
+6. Shows note preview after file is selected
+7. Hides note preview when close is clicked
+
 ---
 
 ## Testing Patterns
@@ -276,26 +305,13 @@ make validate
 
 If coverage needs to increase beyond current levels, consider:
 
-### Remaining Untested Files
+### Remaining Untested File
 
 ```
-pages/Home.tsx
-├── Shows loading state when auth is loading
-├── Shows connect button when not authenticated
-├── Shows authenticated view with vault selector
-└── Handles file selection flow
-
-pages/NotFound.tsx
-├── Renders 404 message
-└── Shows link to home
-
-components/ConnectDropboxButton.tsx
-├── Calls buildAuthUrl on click
-└── Redirects to auth URL
-
 App.tsx (E2E candidate)
-├── Handles OAuth redirect
-└── Routes correctly
+├── Handles OAuth redirect from query params
+├── Routes to correct pages
+└── Wraps app in AuthProvider
 ```
 
 ### Integration Tests (E2E)
