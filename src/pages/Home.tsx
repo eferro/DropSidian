@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useMemo } from 'react'
 import ConnectDropboxButton from '../components/ConnectDropboxButton'
 import AccountInfo from '../components/AccountInfo'
 import VaultSelector from '../components/VaultSelector'
@@ -7,6 +7,7 @@ import NotePreview from '../components/NotePreview'
 import NewNoteModal from '../components/NewNoteModal'
 import { useAuth } from '../context/AuthContext'
 import { uploadFile } from '../lib/dropbox-client'
+import { buildNoteIndex } from '../lib/note-index'
 
 function Home() {
   const { isAuthenticated, isLoading, logout, accessToken } = useAuth()
@@ -14,10 +15,18 @@ function Home() {
   const [selectedFile, setSelectedFile] = useState<string | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [fileListKey, setFileListKey] = useState(0)
+  const [filePaths, setFilePaths] = useState<string[]>([])
+
+  const noteIndex = useMemo(() => buildNoteIndex(filePaths), [filePaths])
 
   const handleVaultSelected = useCallback((path: string) => {
     setVaultPath(path)
     setSelectedFile(null)
+    setFilePaths([])
+  }, [])
+
+  const handleNavigateNote = useCallback((path: string) => {
+    setSelectedFile(path)
   }, [])
 
   const handleCreateNote = useCallback(
@@ -68,6 +77,7 @@ function Home() {
             key={fileListKey}
             vaultPath={vaultPath}
             onFileSelect={setSelectedFile}
+            onFilesLoaded={setFilePaths}
           />
           <button
             type="button"
@@ -92,6 +102,8 @@ function Home() {
         <NotePreview
           filePath={selectedFile}
           onClose={() => setSelectedFile(null)}
+          noteIndex={noteIndex}
+          onNavigateNote={handleNavigateNote}
         />
       )}
       <NewNoteModal

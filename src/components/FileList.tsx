@@ -6,6 +6,7 @@ import styles from './FileList.module.css'
 interface FileListProps {
   vaultPath: string
   onFileSelect: (path: string) => void
+  onFilesLoaded?: (filePaths: string[]) => void
 }
 
 function isMarkdownFile(entry: DropboxEntry): boolean {
@@ -33,7 +34,7 @@ function getCurrentFolderName(path: string, vaultPath: string): string {
   return path.split('/').pop() ?? ''
 }
 
-function FileList({ vaultPath, onFileSelect }: FileListProps) {
+function FileList({ vaultPath, onFileSelect, onFilesLoaded }: FileListProps) {
   const { accessToken } = useAuth()
   const [entries, setEntries] = useState<DropboxEntry[]>([])
   const [error, setError] = useState<string | null>(null)
@@ -57,13 +58,21 @@ function FileList({ vaultPath, onFileSelect }: FileListProps) {
           (entry) => isFolder(entry) || isMarkdownFile(entry)
         )
         setEntries(visibleEntries)
+
+        if (onFilesLoaded) {
+          const markdownPaths = visibleEntries
+            .filter(isMarkdownFile)
+            .map((entry) => entry.path_display)
+          onFilesLoaded(markdownPaths)
+        }
+
         setLoading(false)
       })
       .catch((err) => {
         setError(err.message)
         setLoading(false)
       })
-  }, [accessToken, currentPath])
+  }, [accessToken, currentPath, onFilesLoaded])
 
   if (loading) {
     return (

@@ -20,6 +20,20 @@ vi.mock('remark-gfm', () => ({
   default: {},
 }))
 
+vi.mock('./MarkdownWithWikilinks', () => ({
+  default: ({
+    content,
+    onNavigate,
+  }: {
+    content: string
+    onNavigate: (path: string) => void
+  }) => (
+    <div data-testid="markdown-wikilinks" onClick={() => onNavigate('/vault/Target.md')}>
+      {content}
+    </div>
+  ),
+}))
+
 import { useAuth } from '../context/AuthContext'
 import { downloadFileWithMetadata, updateFile } from '../lib/dropbox-client'
 
@@ -191,6 +205,31 @@ describe('NotePreview', () => {
     await waitFor(() => {
       expect(screen.getByText(/Conflict/)).toBeInTheDocument()
     })
+  })
+
+  it('calls onNavigateNote when wikilink is clicked', async () => {
+    vi.mocked(downloadFileWithMetadata).mockResolvedValue(
+      mockFileResponse('See [[Target]] here.')
+    )
+    const onNavigateNote = vi.fn()
+    const user = userEvent.setup()
+
+    render(
+      <NotePreview
+        filePath="/vault/note.md"
+        onClose={mockOnClose}
+        noteIndex={new Map([['Target', '/vault/Target.md']])}
+        onNavigateNote={onNavigateNote}
+      />
+    )
+
+    await waitFor(() => {
+      expect(screen.getByTestId('markdown-wikilinks')).toBeInTheDocument()
+    })
+
+    await user.click(screen.getByTestId('markdown-wikilinks'))
+
+    expect(onNavigateNote).toHaveBeenCalledWith('/vault/Target.md')
   })
 })
 

@@ -253,4 +253,27 @@ describe('FileList', () => {
     })
     expect(screen.queryByText('← Back')).not.toBeInTheDocument()
   })
+
+  it('calls onFilesLoaded with markdown file paths when files are loaded', async () => {
+    const onFilesLoaded = vi.fn()
+    vi.mocked(listFolder).mockResolvedValue(
+      mockListFolderResponse([
+        { '.tag': 'file', name: 'note.md', path_lower: '/note.md', path_display: '/Vault/note.md', id: 'id:1' },
+        { '.tag': 'file', name: 'another.md', path_lower: '/another.md', path_display: '/Vault/another.md', id: 'id:2' },
+        { '.tag': 'folder', name: 'subfolder', path_lower: '/subfolder', path_display: '/Vault/subfolder', id: 'id:3' },
+      ])
+    )
+
+    render(
+      <FileList
+        vaultPath="/Vault"
+        onFileSelect={mockOnFileSelect}
+        onFilesLoaded={onFilesLoaded}
+      />
+    )
+
+    await waitFor(() => {
+      expect(onFilesLoaded).toHaveBeenCalledWith(['/Vault/note.md', '/Vault/another.md'])
+    })
+  })
 })

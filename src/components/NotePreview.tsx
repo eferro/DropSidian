@@ -3,18 +3,27 @@ import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { downloadFileWithMetadata, updateFile } from '../lib/dropbox-client'
 import { useAuth } from '../context/AuthContext'
+import { NoteIndex } from '../lib/note-index'
+import MarkdownWithWikilinks from './MarkdownWithWikilinks'
 import styles from './NotePreview.module.css'
 
 interface NotePreviewProps {
   filePath: string
   onClose: () => void
+  noteIndex?: NoteIndex
+  onNavigateNote?: (path: string) => void
 }
 
 function removeExtension(filename: string): string {
   return filename.replace(/\.md$/, '')
 }
 
-function NotePreview({ filePath, onClose }: NotePreviewProps) {
+function NotePreview({
+  filePath,
+  onClose,
+  noteIndex,
+  onNavigateNote,
+}: NotePreviewProps) {
   const { accessToken } = useAuth()
   const [content, setContent] = useState<string | null>(null)
   const [editContent, setEditContent] = useState<string>('')
@@ -143,9 +152,17 @@ function NotePreview({ filePath, onClose }: NotePreviewProps) {
         />
       ) : (
         <article className={styles.article}>
-          <ReactMarkdown remarkPlugins={[remarkGfm]}>
-            {content ?? ''}
-          </ReactMarkdown>
+          {noteIndex && onNavigateNote ? (
+            <MarkdownWithWikilinks
+              content={content ?? ''}
+              noteIndex={noteIndex}
+              onNavigate={onNavigateNote}
+            />
+          ) : (
+            <ReactMarkdown remarkPlugins={[remarkGfm]}>
+              {content ?? ''}
+            </ReactMarkdown>
+          )}
         </article>
       )}
     </div>
