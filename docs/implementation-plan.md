@@ -15,7 +15,7 @@
 | H1 | Browse + Read | ✅ Completed |
 | H2 | Create note (Inbox) | ✅ Completed |
 | H3 | Edit + Save | ✅ Completed |
-| H4 | Wikilinks | ⬜ Not started |
+| H4 | Wikilinks | ✅ Completed |
 | H5 | Attachments | ⬜ Not started |
 | H6 | Search | ⬜ Not started |
 
