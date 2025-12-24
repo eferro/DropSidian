@@ -2,52 +2,105 @@ import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { NoteIndex, resolveWikilink } from '../lib/note-index'
 import { parseWikilinks } from '../lib/wikilink-parser'
+import { parseEmbeds, isImageEmbed } from '../lib/embed-parser'
 import WikilinkRenderer from './WikilinkRenderer'
+import ImageEmbed from './ImageEmbed'
 
 interface MarkdownWithWikilinksProps {
   content: string
   noteIndex: NoteIndex
   onNavigate: (path: string) => void
+  accessToken?: string
+  currentPath?: string
 }
 
 interface ContentSegment {
-  type: 'text' | 'wikilink'
+  type: 'text' | 'wikilink' | 'image-embed'
   content: string
   target?: string
   displayText?: string | null
   resolved?: string | null
+  filePath?: string
 }
 
-function splitContentByWikilinks(
+interface ParsedItem {
+  type: 'wikilink' | 'embed'
+  startIndex: number
+  endIndex: number
+  target: string
+  displayText?: string | null
+}
+
+function getParentPath(filePath: string): string {
+  const parts = filePath.split('/')
+  parts.pop()
+  return parts.join('/')
+}
+
+function splitContent(
   content: string,
-  noteIndex: NoteIndex
+  noteIndex: NoteIndex,
+  currentPath?: string
 ): ContentSegment[] {
   const wikilinks = parseWikilinks(content)
+  const embeds = parseEmbeds(content)
 
-  if (wikilinks.length === 0) {
+  const allItems: ParsedItem[] = [
+    ...wikilinks.map((w) => ({
+      type: 'wikilink' as const,
+      startIndex: w.startIndex,
+      endIndex: w.endIndex,
+      target: w.target,
+      displayText: w.displayText,
+    })),
+    ...embeds.map((e) => ({
+      type: 'embed' as const,
+      startIndex: e.startIndex,
+      endIndex: e.endIndex,
+      target: e.target,
+    })),
+  ].sort((a, b) => a.startIndex - b.startIndex)
+
+  if (allItems.length === 0) {
     return [{ type: 'text', content }]
   }
 
   const segments: ContentSegment[] = []
   let lastIndex = 0
 
-  for (const wikilink of wikilinks) {
-    if (wikilink.startIndex > lastIndex) {
+  for (const item of allItems) {
+    if (item.startIndex > lastIndex) {
       segments.push({
         type: 'text',
-        content: content.slice(lastIndex, wikilink.startIndex),
+        content: content.slice(lastIndex, item.startIndex),
       })
     }
 
-    segments.push({
-      type: 'wikilink',
-      content: wikilink.fullMatch,
-      target: wikilink.target,
-      displayText: wikilink.displayText,
-      resolved: resolveWikilink(wikilink.target, noteIndex),
-    })
+    if (item.type === 'wikilink') {
+      segments.push({
+        type: 'wikilink',
+        content: content.slice(item.startIndex, item.endIndex),
+        target: item.target,
+        displayText: item.displayText,
+        resolved: resolveWikilink(item.target, noteIndex),
+      })
+    } else if (item.type === 'embed' && isImageEmbed(item.target)) {
+      const parentPath = currentPath ? getParentPath(currentPath) : ''
+      const imagePath = `${parentPath}/${item.target}`
+      segments.push({
+        type: 'image-embed',
+        content: content.slice(item.startIndex, item.endIndex),
+        target: item.target,
+        filePath: imagePath,
+      })
+    } else {
+      segments.push({
+        type: 'text',
+        content: content.slice(item.startIndex, item.endIndex),
+      })
+    }
 
-    lastIndex = wikilink.endIndex
+    lastIndex = item.endIndex
   }
 
   if (lastIndex < content.length) {
@@ -64,8 +117,10 @@ function MarkdownWithWikilinks({
   content,
   noteIndex,
   onNavigate,
+  accessToken,
+  currentPath,
 }: MarkdownWithWikilinksProps) {
-  const segments = splitContentByWikilinks(content, noteIndex)
+  const segments = splitContent(content, noteIndex, currentPath)
 
   return (
     <>
@@ -78,6 +133,17 @@ function MarkdownWithWikilinks({
               displayText={segment.displayText ?? null}
               resolved={segment.resolved ?? null}
               onNavigate={onNavigate}
+            />
+          )
+        }
+
+        if (segment.type === 'image-embed' && accessToken && segment.filePath) {
+          return (
+            <ImageEmbed
+              key={index}
+              target={segment.target!}
+              filePath={segment.filePath}
+              accessToken={accessToken}
             />
           )
         }

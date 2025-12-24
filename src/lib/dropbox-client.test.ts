@@ -314,3 +314,23 @@ describe('updateFile', () => {
   })
 })
 
+describe('getTemporaryLink', () => {
+  beforeEach(() => {
+    vi.restoreAllMocks()
+  })
+
+  it('returns temporary link for file', async () => {
+    const mockResponse = {
+      link: 'https://dl.dropboxusercontent.com/temp/image.png',
+    }
+    vi.spyOn(global, 'fetch').mockResolvedValue(
+      new Response(JSON.stringify(mockResponse), { status: 200 })
+    )
+
+    const { getTemporaryLink } = await import('./dropbox-client')
+    const result = await getTemporaryLink('token', '/vault/image.png')
+
+    expect(result).toBe('https://dl.dropboxusercontent.com/temp/image.png')
+  })
+})
+

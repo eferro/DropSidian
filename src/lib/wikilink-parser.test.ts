@@ -50,5 +50,14 @@ describe('parseWikilinks', () => {
     expect(result[1].target).toBe('Second')
     expect(result[1].displayText).toBe('two')
   })
+
+  it('does not match embeds (prefixed with !)', () => {
+    const text = 'Image: ![[photo.png]] and link [[Note]]'
+
+    const result = parseWikilinks(text)
+
+    expect(result).toHaveLength(1)
+    expect(result[0].target).toBe('Note')
+  })
 })
 

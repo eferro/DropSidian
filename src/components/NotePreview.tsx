@@ -157,6 +157,8 @@ function NotePreview({
               content={content ?? ''}
               noteIndex={noteIndex}
               onNavigate={onNavigateNote}
+              accessToken={accessToken ?? undefined}
+              currentPath={filePath}
             />
           ) : (
             <ReactMarkdown remarkPlugins={[remarkGfm]}>

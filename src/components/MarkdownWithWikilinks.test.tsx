@@ -10,6 +10,12 @@ vi.mock('remark-gfm', () => ({
   default: {},
 }))
 
+vi.mock('./ImageEmbed', () => ({
+  default: ({ filePath }: { filePath: string }) => (
+    <img data-testid="image-embed" alt={filePath} />
+  ),
+}))
+
 describe('MarkdownWithWikilinks', () => {
   it('renders plain markdown without wikilinks', () => {
     const onNavigate = vi.fn()
@@ -39,6 +45,23 @@ describe('MarkdownWithWikilinks', () => {
     )
 
     expect(screen.getByRole('button', { name: 'My Note' })).toBeInTheDocument()
+  })
+
+  it('renders image embed when accessToken and currentPath provided', () => {
+    const onNavigate = vi.fn()
+    const noteIndex = new Map<string, string>()
+
+    render(
+      <MarkdownWithWikilinks
+        content="Here is an image: ![[photo.png]]"
+        noteIndex={noteIndex}
+        onNavigate={onNavigate}
+        accessToken="token"
+        currentPath="/vault/note.md"
+      />
+    )
+
+    expect(screen.getByTestId('image-embed')).toBeInTheDocument()
   })
 })
 

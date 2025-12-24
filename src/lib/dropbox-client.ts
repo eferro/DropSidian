@@ -253,3 +253,28 @@ export async function updateFile(
   return response.json()
 }
 
+export async function getTemporaryLink(
+  accessToken: string,
+  path: string
+): Promise<string> {
+  const response = await fetch(
+    'https://api.dropboxapi.com/2/files/get_temporary_link',
+    {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ path }),
+    }
+  )
+
+  if (!response.ok) {
+    const error = await response.text()
+    throw new Error(`Failed to get temporary link: ${error}`)
+  }
+
+  const data = await response.json()
+  return data.link
+}
+

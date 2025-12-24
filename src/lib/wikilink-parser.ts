@@ -6,7 +6,7 @@ export interface WikilinkMatch {
   endIndex: number
 }
 
-const WIKILINK_REGEX = /\[\[([^\]|]+)(?:\|([^\]]+))?\]\]/g
+const WIKILINK_REGEX = /(?<!!)\[\[([^\]|]+)(?:\|([^\]]+))?\]\]/g
 
 export function parseWikilinks(text: string): WikilinkMatch[] {
   const matches: WikilinkMatch[] = []
