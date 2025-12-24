@@ -77,8 +77,8 @@ describe('FileList', () => {
       expect(screen.getByText('note')).toBeInTheDocument()
     })
     expect(screen.queryByText('image')).not.toBeInTheDocument()
-    expect(screen.getByText('📁 subfolder')).toBeInTheDocument()
-    expect(screen.getByText('1 notes')).toBeInTheDocument()
+    expect(screen.getByText('subfolder')).toBeInTheDocument()
+    expect(screen.getByText(/1 notes/)).toBeInTheDocument()
   })
 
   it('shows empty state when no markdown files and no folders', async () => {
@@ -153,12 +153,12 @@ describe('FileList', () => {
     render(<FileList vaultPath="/Vault" onFileSelect={mockOnFileSelect} />)
 
     await waitFor(() => {
-      expect(screen.getByText('📁 Projects')).toBeInTheDocument()
+      expect(screen.getByText('Projects')).toBeInTheDocument()
     })
     expect(screen.getByText('note')).toBeInTheDocument()
   })
 
-  it('navigates into folder on double click', async () => {
+  it('navigates into folder on click', async () => {
     vi.mocked(listFolder)
       .mockResolvedValueOnce(
         mockListFolderResponse([
@@ -175,10 +175,10 @@ describe('FileList', () => {
     render(<FileList vaultPath="/Vault" onFileSelect={mockOnFileSelect} />)
 
     await waitFor(() => {
-      expect(screen.getByText('📁 Projects')).toBeInTheDocument()
+      expect(screen.getByText('Projects')).toBeInTheDocument()
     })
 
-    await user.dblClick(screen.getByText('📁 Projects'))
+    await user.click(screen.getByText('Projects'))
 
     await waitFor(() => {
       expect(screen.getByText('project-note')).toBeInTheDocument()
@@ -203,15 +203,15 @@ describe('FileList', () => {
     render(<FileList vaultPath="/Vault" onFileSelect={mockOnFileSelect} />)
 
     await waitFor(() => {
-      expect(screen.getByText('📁 Projects')).toBeInTheDocument()
+      expect(screen.getByText('Projects')).toBeInTheDocument()
     })
 
-    expect(screen.queryByText('⬅ Back')).not.toBeInTheDocument()
+    expect(screen.queryByText('← Back')).not.toBeInTheDocument()
 
-    await user.dblClick(screen.getByText('📁 Projects'))
+    await user.click(screen.getByText('Projects'))
 
     await waitFor(() => {
-      expect(screen.getByText('⬅ Back')).toBeInTheDocument()
+      expect(screen.getByText('← Back')).toBeInTheDocument()
     })
   })
 
@@ -237,20 +237,20 @@ describe('FileList', () => {
     render(<FileList vaultPath="/Vault" onFileSelect={mockOnFileSelect} />)
 
     await waitFor(() => {
-      expect(screen.getByText('📁 Projects')).toBeInTheDocument()
+      expect(screen.getByText('Projects')).toBeInTheDocument()
     })
 
-    await user.dblClick(screen.getByText('📁 Projects'))
+    await user.click(screen.getByText('Projects'))
 
     await waitFor(() => {
-      expect(screen.getByText('⬅ Back')).toBeInTheDocument()
+      expect(screen.getByText('← Back')).toBeInTheDocument()
     })
 
-    await user.click(screen.getByText('⬅ Back'))
+    await user.click(screen.getByText('← Back'))
 
     await waitFor(() => {
-      expect(screen.getByText('📁 Projects')).toBeInTheDocument()
+      expect(screen.getByText('Projects')).toBeInTheDocument()
     })
-    expect(screen.queryByText('⬅ Back')).not.toBeInTheDocument()
+    expect(screen.queryByText('← Back')).not.toBeInTheDocument()
   })
 })

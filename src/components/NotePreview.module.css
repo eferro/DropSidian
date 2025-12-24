@@ -1,0 +1,246 @@
+.container {
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  max-width: 800px;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid #3a3a4a;
+}
+
+.title {
+  flex: 1;
+  margin: 0;
+  font-size: 1.4rem;
+  color: #e0e0f0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+.button {
+  padding: 0.5rem 1rem;
+  border: 1px solid #4a4a5a;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.closeButton {
+  composes: button;
+  background: #2d2d3a;
+  color: #a0a0b0;
+}
+
+.closeButton:hover {
+  background: #3d3d4a;
+  color: #e0e0f0;
+  border-color: #6a6a7a;
+}
+
+.editButton {
+  composes: button;
+  background: #2a3535;
+  color: #7ad0d0;
+  border-color: #4a6a6a;
+}
+
+.editButton:hover {
+  background: #354545;
+  color: #9af0f0;
+  border-color: #6a8a8a;
+}
+
+.saveButton {
+  composes: button;
+  background: #2a4a2a;
+  color: #7ad07a;
+  border-color: #4a6a4a;
+}
+
+.saveButton:hover:not(:disabled) {
+  background: #355535;
+  color: #9af09a;
+  border-color: #6a8a6a;
+}
+
+.saveButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.cancelButton {
+  composes: button;
+  background: #3a2a2a;
+  color: #d0a0a0;
+  border-color: #5a4a4a;
+}
+
+.cancelButton:hover:not(:disabled) {
+  background: #4a3535;
+  color: #e0b0b0;
+  border-color: #6a5a5a;
+}
+
+.cancelButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.errorMessage {
+  padding: 0.75rem 1rem;
+  margin-bottom: 1rem;
+  background: #3a2a2a;
+  border: 1px solid #5a3a3a;
+  border-radius: 6px;
+  color: #e0a0a0;
+  font-size: 0.9rem;
+}
+
+.editor {
+  width: 100%;
+  min-height: 400px;
+  padding: 1rem;
+  background: #1a1a24;
+  border: 1px solid #3a3a4a;
+  border-radius: 8px;
+  color: #c0c0d0;
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  font-size: 0.9rem;
+  line-height: 1.6;
+  resize: vertical;
+}
+
+.editor:focus {
+  outline: none;
+  border-color: #5a6a7a;
+  box-shadow: 0 0 0 2px rgba(122, 208, 208, 0.2);
+}
+
+.article {
+  padding: 1rem;
+  background: #1a1a24;
+  border: 1px solid #3a3a4a;
+  border-radius: 8px;
+  color: #c0c0d0;
+  line-height: 1.7;
+}
+
+.article h1,
+.article h2,
+.article h3 {
+  color: #e0e0f0;
+  margin-top: 1.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.article h1:first-child,
+.article h2:first-child,
+.article h3:first-child {
+  margin-top: 0;
+}
+
+.article p {
+  margin-bottom: 1rem;
+}
+
+.article ul,
+.article ol {
+  margin-bottom: 1rem;
+  padding-left: 1.5rem;
+}
+
+.article li {
+  margin-bottom: 0.25rem;
+}
+
+.article code {
+  background: #252530;
+  padding: 0.15rem 0.4rem;
+  border-radius: 4px;
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  font-size: 0.85em;
+}
+
+.article pre {
+  background: #252530;
+  padding: 1rem;
+  border-radius: 6px;
+  overflow-x: auto;
+  margin-bottom: 1rem;
+}
+
+.article pre code {
+  background: transparent;
+  padding: 0;
+}
+
+.article blockquote {
+  border-left: 3px solid #5a5a6a;
+  margin: 1rem 0;
+  padding-left: 1rem;
+  color: #9a9aaa;
+}
+
+.article a {
+  color: #7ad0d0;
+  text-decoration: none;
+}
+
+.article a:hover {
+  text-decoration: underline;
+}
+
+.loadingContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem;
+  color: #7a7a8a;
+}
+
+.spinner {
+  width: 20px;
+  height: 20px;
+  border: 2px solid #3a3a4a;
+  border-top-color: #7ad0d0;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin-right: 0.75rem;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.errorContainer {
+  padding: 1.5rem;
+  background: #3a2a2a;
+  border: 1px solid #5a3a3a;
+  border-radius: 8px;
+  text-align: center;
+}
+
+.errorText {
+  color: #e0a0a0;
+  margin-bottom: 1rem;
+}
+
+.errorCloseButton {
+  composes: closeButton;
+}
+

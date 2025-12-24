@@ -3,6 +3,7 @@ import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { downloadFileWithMetadata, updateFile } from '../lib/dropbox-client'
 import { useAuth } from '../context/AuthContext'
+import styles from './NotePreview.module.css'
 
 interface NotePreviewProps {
   filePath: string
@@ -78,14 +79,19 @@ function NotePreview({ filePath, onClose }: NotePreviewProps) {
   }
 
   if (loading) {
-    return <p>Loading note...</p>
+    return (
+      <div className={styles.loadingContainer}>
+        <div className={styles.spinner} />
+        Loading note...
+      </div>
+    )
   }
 
   if (error && !isEditing) {
     return (
-      <div>
-        <p>Error: {error}</p>
-        <button type="button" onClick={onClose}>
+      <div className={styles.errorContainer}>
+        <p className={styles.errorText}>Error: {error}</p>
+        <button type="button" className={styles.errorCloseButton} onClick={onClose}>
           Close
         </button>
       </div>
@@ -95,37 +101,48 @@ function NotePreview({ filePath, onClose }: NotePreviewProps) {
   const fileName = filePath.split('/').pop() ?? filePath
 
   return (
-    <div>
-      <h2>{removeExtension(fileName)}</h2>
-      <div>
-        <button type="button" onClick={onClose}>
-          Close
-        </button>
-        {!isEditing ? (
-          <button type="button" onClick={handleEdit}>
-            Edit
+    <div className={styles.container}>
+      <div className={styles.header}>
+        <h2 className={styles.title}>{removeExtension(fileName)}</h2>
+        <div className={styles.actions}>
+          <button type="button" className={styles.closeButton} onClick={onClose}>
+            ✕ Close
           </button>
-        ) : (
-          <>
-            <button type="button" onClick={handleCancelEdit} disabled={saving}>
-              Cancel
+          {!isEditing ? (
+            <button type="button" className={styles.editButton} onClick={handleEdit}>
+              ✎ Edit
             </button>
-            <button type="button" onClick={handleSave} disabled={saving}>
-              {saving ? 'Saving...' : 'Save'}
-            </button>
-          </>
-        )}
+          ) : (
+            <>
+              <button
+                type="button"
+                className={styles.cancelButton}
+                onClick={handleCancelEdit}
+                disabled={saving}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className={styles.saveButton}
+                onClick={handleSave}
+                disabled={saving}
+              >
+                {saving ? 'Saving...' : '✓ Save'}
+              </button>
+            </>
+          )}
+        </div>
       </div>
-      {error && <p style={{ color: 'red' }}>{error}</p>}
+      {error && <p className={styles.errorMessage}>{error}</p>}
       {isEditing ? (
         <textarea
+          className={styles.editor}
           value={editContent}
           onChange={(e) => setEditContent(e.target.value)}
-          rows={20}
-          style={{ width: '100%', fontFamily: 'monospace' }}
         />
       ) : (
-        <article>
+        <article className={styles.article}>
           <ReactMarkdown remarkPlugins={[remarkGfm]}>
             {content ?? ''}
           </ReactMarkdown>

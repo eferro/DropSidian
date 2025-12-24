@@ -1,0 +1,193 @@
+.container {
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid #3a3a4a;
+}
+
+.backButton {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.4rem 0.75rem;
+  background: #2d2d3a;
+  border: 1px solid #4a4a5a;
+  border-radius: 6px;
+  color: #a0a0b0;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.backButton:hover {
+  background: #3d3d4a;
+  color: #e0e0f0;
+  border-color: #6a6a7a;
+}
+
+.breadcrumb {
+  font-size: 0.8rem;
+  color: #7a7a8a;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.stats {
+  font-size: 0.75rem;
+  color: #6a6a7a;
+  background: #252530;
+  padding: 0.25rem 0.6rem;
+  border-radius: 10px;
+}
+
+.list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.listItem {
+  margin: 0;
+}
+
+.itemButton {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  width: 100%;
+  padding: 0.65rem 0.85rem;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  color: #c0c0d0;
+  font-size: 0.9rem;
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.itemButton:hover {
+  background: #2a2a38;
+  border-color: #3a3a4a;
+}
+
+.itemButton:active {
+  background: #323242;
+}
+
+.folderButton {
+  composes: itemButton;
+}
+
+.folderButton:hover {
+  background: linear-gradient(135deg, #2a2a38 0%, #2d2a35 100%);
+  border-color: #5a4a6a;
+}
+
+.fileButton {
+  composes: itemButton;
+}
+
+.fileButton:hover {
+  background: linear-gradient(135deg, #2a2a38 0%, #2a3535 100%);
+  border-color: #4a6a6a;
+}
+
+.icon {
+  font-size: 1.1rem;
+  flex-shrink: 0;
+}
+
+.folderIcon {
+  composes: icon;
+  filter: drop-shadow(0 0 3px rgba(255, 200, 100, 0.3));
+}
+
+.fileIcon {
+  composes: icon;
+  color: #7ad0d0;
+}
+
+.itemName {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.chevron {
+  color: #5a5a6a;
+  font-size: 0.8rem;
+  transition: transform 0.15s ease;
+}
+
+.folderButton:hover .chevron {
+  color: #8a8a9a;
+  transform: translateX(3px);
+}
+
+.loadingContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  color: #7a7a8a;
+}
+
+.spinner {
+  width: 20px;
+  height: 20px;
+  border: 2px solid #3a3a4a;
+  border-top-color: #7ad0d0;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin-right: 0.75rem;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.errorContainer {
+  padding: 1rem;
+  background: #3a2a2a;
+  border: 1px solid #5a3a3a;
+  border-radius: 8px;
+  color: #e0a0a0;
+  font-size: 0.9rem;
+}
+
+.emptyContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 1rem;
+  color: #6a6a7a;
+  text-align: center;
+}
+
+.emptyIcon {
+  font-size: 2.5rem;
+  margin-bottom: 0.75rem;
+  opacity: 0.5;
+}
+
+.emptyText {
+  font-size: 0.9rem;
+}
+
