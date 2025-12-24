@@ -94,6 +94,11 @@ This document contains all development rules and guidelines for this project, ap
 - **E2E Tests**: Full system validation (minimal, critical user paths only).
 - **Test Pyramid**: Follow the test pyramid - many unit tests, some integration tests, few E2E tests.
 
+### Repository Hygiene
+- **Generated Files**: Add all generated artifacts to `.gitignore` before first commit (e.g., `coverage/`, `dist/`, `build/`, `node_modules/`, `__pycache__/`).
+- **IDE Files**: Exclude IDE-specific files unless the team standardizes on shared settings.
+- **Sensitive Files**: Never commit secrets, credentials, or environment-specific configuration.
+
 ## 9. Test-Driven Development Rules
 
 ### TDD Approach
@@ -109,6 +114,7 @@ This document contains all development rules and guidelines for this project, ap
 - **No Comments**: Avoid comments; make code self-documenting through naming.
 - **Simple Helpers**: Use helper methods (e.g., object mothers/factories) for repeated setup.
 - **Strategic Mocking**: Use standard library mocking for system/platform modules. Use the project's mocking framework for application code.
+- **Complete Mocks**: When mocking a module, include ALL exports that the code under test imports, not just the functions being directly tested. Incomplete mocks cause runtime errors.
 
 ### Test Simplicity & Maintainability
 - **Simplest Setup**: Prefer the simplest test setup that covers the requirement.
@@ -159,6 +165,7 @@ Projects typically provide tasks for:
 1. **Discover first**: Always check what tasks are available before running any tool.
 2. **Use task runner**: Never call underlying tools directly; use the configured task.
 3. **Add new tasks**: If a new operation is needed, prefer adding a new task rather than running a tool directly.
+4. **Dependency installation**: Never install dependencies directly (e.g., `npm install X`). Instead, add them to the dependency file (e.g., `package.json`, `requirements.txt`) and run the project's setup task (e.g., `make local-setup`).
 
 ### Good vs Bad Examples
 ```sh
