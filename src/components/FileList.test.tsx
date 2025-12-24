@@ -12,9 +12,9 @@ vi.mock('../lib/dropbox-client', () => ({
 }))
 
 import { useAuth } from '../context/AuthContext'
-import { listFolder } from '../lib/dropbox-client'
+import { listFolder, ListFolderResponse, DropboxEntry } from '../lib/dropbox-client'
 
-function mockListFolderResponse(entries: unknown[]) {
+function mockListFolderResponse(entries: DropboxEntry[]): ListFolderResponse {
   return {
     entries,
     cursor: 'cursor',

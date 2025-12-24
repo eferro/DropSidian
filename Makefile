@@ -24,11 +24,12 @@ check-node:
 		(echo "Error: Node.js >= 18 required" && exit 1)
 	@echo "Node.js version OK: $$(node --version)"
 
-# Install dependencies
+# Install dependencies and setup git hooks
 local-setup: check-node
 	npm install
+	npm run prepare
 	@echo ""
-	@echo "Setup complete! Run 'make dev' to start development server."
+	@echo "Setup complete! Git hooks installed. Run 'make dev' to start development server."
 
 # Development server
 dev:
