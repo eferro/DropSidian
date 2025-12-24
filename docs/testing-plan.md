@@ -8,9 +8,9 @@ This document outlines the test coverage strategy for DropSidian, prioritizing c
 
 | Metric | Value |
 |--------|-------|
-| Total Tests | 85 |
-| Statement Coverage | 91.02% |
-| Branch Coverage | 95.56% |
+| Total Tests | 90 |
+| Statement Coverage | 91.43% |
+| Branch Coverage | 95.82% |
 
 ## Coverage by Layer
 
@@ -19,10 +19,8 @@ This document outlines the test coverage strategy for DropSidian, prioritizing c
 | `src/lib/` | 100% | ✅ Complete |
 | `src/context/` | 100% | ✅ Complete |
 | `src/components/` | 100% | ✅ Complete |
-| `src/pages/` | 100%* | ✅ Complete |
-| `src/App.tsx` | 0% | ⏳ Deferred (E2E candidate) |
-
-*Excluding App.tsx which is router configuration
+| `src/pages/` | 96.38% | ✅ Complete |
+| `src/App.tsx` | Partial | ✅ Routing tested |
 
 ---
 
@@ -71,11 +69,16 @@ Originally deferred but now tested for completeness.
 | `components/ConnectDropboxButton.tsx` | 100% | 2 |
 | `pages/Home.tsx` | 100% | 7 |
 
-### Tier 5 — Intentionally Not Tested
+### Tier 5 — App Routing ✅ COMPLETED
+
+| File | Coverage | Tests |
+|------|----------|-------|
+| `App.tsx` | Partial | 5 (routing tests) |
+
+### Tier 6 — Intentionally Not Tested
 
 | File | Reason |
 |------|--------|
-| `App.tsx` | Router configuration, E2E test candidate |
 | Config files (`vite.config.ts`, etc.) | Infrastructure, excluded from coverage |
 
 ---

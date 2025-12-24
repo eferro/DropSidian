@@ -13,7 +13,7 @@
 | H0.2 | Persist session + logout | ✅ Completed |
 | H0.3 | Vault file access proof | ✅ Completed |
 | H1 | Browse + Read | ✅ Completed |
-| H2 | Create note (Inbox) | ⬜ Not started |
+| H2 | Create note (Inbox) | ✅ Completed |
 | H3 | Edit + Save | ⬜ Not started |
 | H4 | Wikilinks | ⬜ Not started |
 | H5 | Attachments | ⬜ Not started |
