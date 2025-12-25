@@ -6,6 +6,7 @@ import {
   getImagePreviewUrl,
 } from "../lib/image-preview";
 import { useLazyLoad } from "../hooks/useLazyLoad";
+import PreviewSkeleton from "./PreviewSkeleton";
 
 interface MarkdownPreviewProps {
   content: string;
@@ -25,6 +26,7 @@ function MarkdownPreview({
   enableLazyLoad = false,
 }: MarkdownPreviewProps) {
   const [processedContent, setProcessedContent] = useState(content);
+  const [isLoading, setIsLoading] = useState(false);
   const { isVisible, ref } = useLazyLoad();
 
   const shouldLoadImages = enableLazyLoad ? isVisible : true;
@@ -38,14 +40,19 @@ function MarkdownPreview({
     async function processImages() {
       if (!accessToken || !vaultPath) {
         setProcessedContent(content);
+        setIsLoading(false);
         return;
+      }
+
+      const imageRefs = extractImageReferences(content);
+      if (imageRefs.length > 0) {
+        setIsLoading(true);
       }
 
       const noteDir = notePath
         ? notePath.substring(0, notePath.lastIndexOf("/"))
         : vaultPath;
 
-      const imageRefs = extractImageReferences(content);
       let processed = content;
 
       for (const imageRef of imageRefs) {
@@ -65,10 +72,23 @@ function MarkdownPreview({
       }
 
       setProcessedContent(processed);
+      setIsLoading(false);
     }
 
     processImages();
   }, [content, accessToken, vaultPath, notePath, shouldLoadImages]);
+
+  if (isLoading) {
+    return (
+      <div
+        ref={ref}
+        className={styles.preview}
+        style={{ maxHeight: `${maxHeight}px` }}
+      >
+        <PreviewSkeleton />
+      </div>
+    );
+  }
 
   return (
     <div
