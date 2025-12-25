@@ -28,12 +28,18 @@ describe("MarkdownPreview", () => {
         maxHeight={200}
         accessToken="test-token"
         vaultPath="/vault"
+        notePath="/vault/inbox/note.md"
       />
     );
 
     await waitFor(() => {
       const img = screen.getByRole("img");
       expect(img).toHaveAttribute("src", "https://example.com/test.png");
+      expect(imagePreview.getImagePreviewUrl).toHaveBeenCalledWith(
+        "test-token",
+        "/vault/inbox",
+        "test.png"
+      );
     });
   });
 

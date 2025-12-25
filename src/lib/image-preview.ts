@@ -1,5 +1,7 @@
 import { getTemporaryLink } from "./dropbox-client";
 
+const imageUrlCache = new Map<string, string>();
+
 export function extractImageReferences(content: string): string[] {
   const wikiImageRegex = /!\[\[([^\]]+)\]\]/g;
   const matches: string[] = [];
@@ -18,5 +20,18 @@ export async function getImagePreviewUrl(
   filename: string
 ): Promise<string> {
   const fullPath = `${vaultPath}/${filename}`;
-  return await getTemporaryLink(accessToken, fullPath);
+  const cacheKey = fullPath;
+
+  if (imageUrlCache.has(cacheKey)) {
+    return imageUrlCache.get(cacheKey)!;
+  }
+
+  const url = await getTemporaryLink(accessToken, fullPath);
+  imageUrlCache.set(cacheKey, url);
+
+  return url;
+}
+
+export function clearImageCache(): void {
+  imageUrlCache.clear();
 }

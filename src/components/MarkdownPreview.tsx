@@ -11,6 +11,7 @@ interface MarkdownPreviewProps {
   maxHeight: number;
   accessToken?: string;
   vaultPath?: string;
+  notePath?: string;
 }
 
 function MarkdownPreview({
@@ -18,6 +19,7 @@ function MarkdownPreview({
   maxHeight,
   accessToken,
   vaultPath,
+  notePath,
 }: MarkdownPreviewProps) {
   const [processedContent, setProcessedContent] = useState(content);
 
@@ -28,6 +30,10 @@ function MarkdownPreview({
         return;
       }
 
+      const noteDir = notePath
+        ? notePath.substring(0, notePath.lastIndexOf("/"))
+        : vaultPath;
+
       const imageRefs = extractImageReferences(content);
       let processed = content;
 
@@ -35,7 +41,7 @@ function MarkdownPreview({
         try {
           const imageUrl = await getImagePreviewUrl(
             accessToken,
-            vaultPath,
+            noteDir,
             imageRef
           );
           processed = processed.replace(
@@ -51,7 +57,7 @@ function MarkdownPreview({
     }
 
     processImages();
-  }, [content, accessToken, vaultPath]);
+  }, [content, accessToken, vaultPath, notePath]);
 
   return (
     <div className={styles.preview} style={{ maxHeight: `${maxHeight}px` }}>

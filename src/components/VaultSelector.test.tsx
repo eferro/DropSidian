@@ -84,3 +84,4 @@ describe("VaultSelector", () => {
     expect(storeVaultPath).not.toHaveBeenCalled();
   });
 });
+

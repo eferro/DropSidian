@@ -57,3 +57,4 @@ export async function clearRefreshToken(): Promise<void> {
     request.onsuccess = () => resolve();
   });
 }
+

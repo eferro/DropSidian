@@ -30,3 +30,4 @@ describe("vault-storage", () => {
     expect(retrieved).toBeNull();
   });
 });
+

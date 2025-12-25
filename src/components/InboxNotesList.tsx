@@ -70,6 +70,7 @@ function InboxNotesList({
                     maxHeight={200}
                     accessToken={accessToken ?? undefined}
                     vaultPath={vaultPath}
+                    notePath={note.path_display}
                   />
                 </div>
               )}
