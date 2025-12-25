@@ -34,6 +34,21 @@ vi.mock('./MarkdownWithWikilinks', () => ({
   ),
 }))
 
+vi.mock('./AttachmentUploader', () => ({
+  default: ({
+    onUploadComplete,
+  }: {
+    onUploadComplete: (filename: string) => void
+  }) => (
+    <button
+      data-testid="attachment-uploader"
+      onClick={() => onUploadComplete('photo.png')}
+    >
+      Upload
+    </button>
+  ),
+}))
+
 import { useAuth } from '../context/AuthContext'
 import { downloadFileWithMetadata, updateFile } from '../lib/dropbox-client'
 
@@ -230,6 +245,39 @@ describe('NotePreview', () => {
     await user.click(screen.getByTestId('markdown-wikilinks'))
 
     expect(onNavigateNote).toHaveBeenCalledWith('/vault/Target.md')
+  })
+
+  it('shows attachment uploader in edit mode', async () => {
+    vi.mocked(downloadFileWithMetadata).mockResolvedValue(mockFileResponse('# Test'))
+    const user = userEvent.setup()
+
+    render(<NotePreview filePath="/vault/note.md" onClose={mockOnClose} />)
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /edit/i })).toBeInTheDocument()
+    })
+
+    await user.click(screen.getByRole('button', { name: /edit/i }))
+
+    expect(screen.getByTestId('attachment-uploader')).toBeInTheDocument()
+  })
+
+  it('inserts embed syntax when attachment is uploaded', async () => {
+    vi.mocked(downloadFileWithMetadata).mockResolvedValue(mockFileResponse('# Test'))
+    vi.mocked(updateFile).mockResolvedValue({ name: 'note.md', path_display: '/vault/note.md', rev: 'rev-2' })
+    const user = userEvent.setup()
+
+    render(<NotePreview filePath="/vault/note.md" onClose={mockOnClose} />)
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /edit/i })).toBeInTheDocument()
+    })
+
+    await user.click(screen.getByRole('button', { name: /edit/i }))
+    await user.click(screen.getByTestId('attachment-uploader'))
+
+    const textarea = screen.getByRole('textbox') as HTMLTextAreaElement
+    expect(textarea.value).toContain('![[photo.png]]')
   })
 })
 

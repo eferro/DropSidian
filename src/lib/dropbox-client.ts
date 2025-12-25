@@ -278,3 +278,29 @@ export async function getTemporaryLink(
   return data.link
 }
 
+export async function uploadBinaryFile(
+  accessToken: string,
+  path: string,
+  blob: Blob
+): Promise<UploadFileResponse> {
+  const response = await fetch(
+    'https://content.dropboxapi.com/2/files/upload',
+    {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        'Dropbox-API-Arg': JSON.stringify({ path, mode: 'add' }),
+        'Content-Type': 'application/octet-stream',
+      },
+      body: blob,
+    }
+  )
+
+  if (!response.ok) {
+    const error = await response.text()
+    throw new Error(`Failed to upload file: ${error}`)
+  }
+
+  return response.json()
+}
+

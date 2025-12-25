@@ -334,3 +334,28 @@ describe('getTemporaryLink', () => {
   })
 })
 
+describe('uploadBinaryFile', () => {
+  beforeEach(() => {
+    vi.restoreAllMocks()
+  })
+
+  it('uploads binary file and returns metadata', async () => {
+    const mockResponse = {
+      name: 'photo.png',
+      path_lower: '/vault/photo.png',
+      path_display: '/Vault/photo.png',
+      id: 'id:abc123',
+    }
+    vi.spyOn(global, 'fetch').mockResolvedValue(
+      new Response(JSON.stringify(mockResponse), { status: 200 })
+    )
+
+    const { uploadBinaryFile } = await import('./dropbox-client')
+    const blob = new Blob(['fake image data'], { type: 'image/png' })
+    const result = await uploadBinaryFile('token', '/Vault/photo.png', blob)
+
+    expect(result.name).toBe('photo.png')
+    expect(result.path_display).toBe('/Vault/photo.png')
+  })
+})
+

@@ -5,6 +5,7 @@ import { downloadFileWithMetadata, updateFile } from '../lib/dropbox-client'
 import { useAuth } from '../context/AuthContext'
 import { NoteIndex } from '../lib/note-index'
 import MarkdownWithWikilinks from './MarkdownWithWikilinks'
+import AttachmentUploader from './AttachmentUploader'
 import styles from './NotePreview.module.css'
 
 interface NotePreviewProps {
@@ -145,11 +146,22 @@ function NotePreview({
       </div>
       {error && <p className={styles.errorMessage}>{error}</p>}
       {isEditing ? (
-        <textarea
-          className={styles.editor}
-          value={editContent}
-          onChange={(e) => setEditContent(e.target.value)}
-        />
+        <>
+          {accessToken && (
+            <AttachmentUploader
+              currentNotePath={filePath}
+              accessToken={accessToken}
+              onUploadComplete={(filename) => {
+                setEditContent((prev) => `${prev}\n![[${filename}]]`)
+              }}
+            />
+          )}
+          <textarea
+            className={styles.editor}
+            value={editContent}
+            onChange={(e) => setEditContent(e.target.value)}
+          />
+        </>
       ) : (
         <article className={styles.article}>
           {noteIndex && onNavigateNote ? (
