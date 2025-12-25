@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { render, screen, waitFor } from '@testing-library/react'
+import { render, screen, waitFor, fireEvent } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import NotePreview from './NotePreview'
 
@@ -10,6 +10,7 @@ vi.mock('../context/AuthContext', () => ({
 vi.mock('../lib/dropbox-client', () => ({
   downloadFileWithMetadata: vi.fn(),
   updateFile: vi.fn(),
+  uploadBinaryFile: vi.fn(),
 }))
 
 vi.mock('react-markdown', () => ({
@@ -50,7 +51,7 @@ vi.mock('./AttachmentUploader', () => ({
 }))
 
 import { useAuth } from '../context/AuthContext'
-import { downloadFileWithMetadata, updateFile } from '../lib/dropbox-client'
+import { downloadFileWithMetadata, updateFile, uploadBinaryFile } from '../lib/dropbox-client'
 
 function mockFileResponse(content: string, rev = 'rev-123') {
   return { content, rev, name: 'note.md', path_display: '/vault/note.md' }
@@ -278,6 +279,52 @@ describe('NotePreview', () => {
 
     const textarea = screen.getByRole('textbox') as HTMLTextAreaElement
     expect(textarea.value).toContain('![[photo.png]]')
+  })
+
+  it('uploads pasted image and inserts embed syntax', async () => {
+    vi.mocked(downloadFileWithMetadata).mockResolvedValue(mockFileResponse('# Test'))
+    vi.mocked(uploadBinaryFile).mockResolvedValue({
+      name: 'Pasted image 20240315143045.png',
+      path_lower: '/vault/pasted image 20240315143045.png',
+      path_display: '/vault/Pasted image 20240315143045.png',
+      id: 'id:123',
+    })
+    const user = userEvent.setup()
+
+    render(<NotePreview filePath="/vault/note.md" onClose={mockOnClose} />)
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /edit/i })).toBeInTheDocument()
+    })
+
+    await user.click(screen.getByRole('button', { name: /edit/i }))
+
+    const textarea = screen.getByRole('textbox')
+    const mockFile = new File(['image data'], 'screenshot.png', { type: 'image/png' })
+    const mockItem = {
+      kind: 'file',
+      type: 'image/png',
+      getAsFile: () => mockFile,
+    }
+
+    fireEvent.paste(textarea, {
+      clipboardData: {
+        items: [mockItem],
+      },
+    })
+
+    await waitFor(() => {
+      expect(uploadBinaryFile).toHaveBeenCalledWith(
+        'test-token',
+        expect.stringMatching(/^\/vault\/Pasted image \d{14}\.png$/),
+        mockFile
+      )
+    })
+
+    await waitFor(() => {
+      const ta = screen.getByRole('textbox') as HTMLTextAreaElement
+      expect(ta.value).toMatch(/!\[\[Pasted image \d{14}\.png\]\]/)
+    })
   })
 })
 

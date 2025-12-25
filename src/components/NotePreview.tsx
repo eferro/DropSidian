@@ -6,6 +6,7 @@ import { useAuth } from '../context/AuthContext'
 import { NoteIndex } from '../lib/note-index'
 import MarkdownWithWikilinks from './MarkdownWithWikilinks'
 import AttachmentUploader from './AttachmentUploader'
+import { usePasteImage } from '../hooks/usePasteImage'
 import styles from './NotePreview.module.css'
 
 interface NotePreviewProps {
@@ -95,6 +96,16 @@ function NotePreview({
     setError(null)
   }
 
+  const handleImagePasted = useCallback((filename: string) => {
+    setEditContent((prev) => `${prev}\n![[${filename}]]`)
+  }, [])
+
+  const { handlePaste, uploading: uploadingPastedImage } = usePasteImage({
+    accessToken: accessToken ?? '',
+    currentNotePath: filePath,
+    onImagePasted: handleImagePasted,
+  })
+
   if (loading) {
     return (
       <div className={styles.loadingContainer}>
@@ -163,11 +174,19 @@ function NotePreview({
               }}
             />
           )}
-          <textarea
-            className={styles.editor}
-            value={editContent}
-            onChange={(e) => setEditContent(e.target.value)}
-          />
+          <div className={styles.editorContainer}>
+            <textarea
+              className={styles.editor}
+              value={editContent}
+              onChange={(e) => setEditContent(e.target.value)}
+              onPaste={handlePaste}
+            />
+            {uploadingPastedImage && (
+              <div className={styles.uploadingOverlay}>
+                Uploading image...
+              </div>
+            )}
+          </div>
         </>
       ) : (
         <article className={styles.article}>
