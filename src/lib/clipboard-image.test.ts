@@ -51,5 +51,17 @@ describe('extractImageFromClipboard', () => {
 
     expect(result).toBeNull()
   })
+
+  it('returns image from files array when items has no image (Linux fallback)', () => {
+    const mockFile = new File(['image data'], 'screenshot.png', { type: 'image/png' })
+    const clipboardData = {
+      items: [] as unknown as DataTransferItemList,
+      files: [mockFile] as unknown as FileList,
+    } as DataTransfer
+
+    const result = extractImageFromClipboard(clipboardData)
+
+    expect(result).toBe(mockFile)
+  })
 })
 

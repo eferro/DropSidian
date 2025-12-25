@@ -12,13 +12,23 @@ export function generatePastedImageName(date: Date = new Date()): string {
 export function extractImageFromClipboard(
   clipboardData: DataTransfer | null
 ): File | null {
-  if (!clipboardData || !clipboardData.items) {
+  if (!clipboardData) {
     return null
   }
 
-  for (const item of clipboardData.items) {
-    if (item.kind === 'file' && item.type.startsWith('image/')) {
-      return item.getAsFile()
+  if (clipboardData.items) {
+    for (const item of clipboardData.items) {
+      if (item.kind === 'file' && item.type.startsWith('image/')) {
+        return item.getAsFile()
+      }
+    }
+  }
+
+  if (clipboardData.files) {
+    for (const file of clipboardData.files) {
+      if (file.type.startsWith('image/')) {
+        return file
+      }
     }
   }
 
