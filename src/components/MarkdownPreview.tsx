@@ -5,6 +5,7 @@ import {
   extractImageReferences,
   getImagePreviewUrl,
 } from "../lib/image-preview";
+import { useLazyLoad } from "../hooks/useLazyLoad";
 
 interface MarkdownPreviewProps {
   content: string;
@@ -12,6 +13,7 @@ interface MarkdownPreviewProps {
   accessToken?: string;
   vaultPath?: string;
   notePath?: string;
+  enableLazyLoad?: boolean;
 }
 
 function MarkdownPreview({
@@ -20,10 +22,19 @@ function MarkdownPreview({
   accessToken,
   vaultPath,
   notePath,
+  enableLazyLoad = false,
 }: MarkdownPreviewProps) {
   const [processedContent, setProcessedContent] = useState(content);
+  const { isVisible, ref } = useLazyLoad();
+
+  const shouldLoadImages = enableLazyLoad ? isVisible : true;
 
   useEffect(() => {
+    if (!shouldLoadImages) {
+      setProcessedContent(content);
+      return;
+    }
+
     async function processImages() {
       if (!accessToken || !vaultPath) {
         setProcessedContent(content);
@@ -57,10 +68,14 @@ function MarkdownPreview({
     }
 
     processImages();
-  }, [content, accessToken, vaultPath, notePath]);
+  }, [content, accessToken, vaultPath, notePath, shouldLoadImages]);
 
   return (
-    <div className={styles.preview} style={{ maxHeight: `${maxHeight}px` }}>
+    <div
+      ref={ref}
+      className={styles.preview}
+      style={{ maxHeight: `${maxHeight}px` }}
+    >
       <ReactMarkdown>{processedContent}</ReactMarkdown>
     </div>
   );

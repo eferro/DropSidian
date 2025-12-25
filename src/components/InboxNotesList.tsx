@@ -71,6 +71,7 @@ function InboxNotesList({
                     accessToken={accessToken ?? undefined}
                     vaultPath={vaultPath}
                     notePath={note.path_display}
+                    enableLazyLoad={true}
                   />
                 </div>
               )}
