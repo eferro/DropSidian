@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '../context/AuthContext'
 import { listInboxNotes, InboxNote } from '../lib/dropbox-client'
+import { formatDate } from '../lib/date-utils'
 import styles from './InboxNotesList.module.css'
 
 interface InboxNotesListProps {
@@ -57,6 +58,7 @@ function InboxNotesList({ vaultPath, inboxPath, refreshKey }: InboxNotesListProp
               }}
             >
               <h3 className={styles.cardTitle}>{nameWithoutExt}</h3>
+              <p className={styles.cardDate}>{formatDate(note.server_modified)}</p>
             </div>
           )
         })}

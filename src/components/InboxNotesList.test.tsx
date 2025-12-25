@@ -125,4 +125,24 @@ describe('InboxNotesList', () => {
 
     window.removeEventListener('inboxFileSelect', eventSpy)
   })
+
+  it('displays formatted last modified date for each note', async () => {
+    vi.spyOn(dropboxClient, 'listInboxNotes').mockResolvedValue([
+      {
+        name: 'Note 1.md',
+        path_display: '/vault/Inbox/Note 1.md',
+        path_lower: '/vault/inbox/note 1.md',
+        id: 'id:1',
+        server_modified: '2024-01-15T10:00:00Z',
+      },
+    ])
+
+    render(<InboxNotesList vaultPath="/vault" inboxPath="Inbox" />)
+
+    await waitFor(() => {
+      expect(screen.getByText('Note 1')).toBeInTheDocument()
+    })
+
+    expect(screen.getByText(/Jan 15, 2024/)).toBeInTheDocument()
+  })
 })
