@@ -17,7 +17,7 @@
 | H3 | Edit + Save | ✅ Completed |
 | H4 | Wikilinks | ✅ Completed |
 | H5 | Attachments | ✅ Completed |
-| H6 | Search | 🔄 H6.1 Done |
+| H6 | Search | ✅ Completed |
 
 ---
 
