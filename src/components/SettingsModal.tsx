@@ -5,6 +5,8 @@ interface SettingsModalProps {
   onClose: () => void
   vaultPath?: string | null
   onChangeVault?: () => void
+  inboxPath?: string
+  onInboxPathChange?: (path: string) => void
 }
 
 function SettingsModal({
@@ -12,6 +14,8 @@ function SettingsModal({
   onClose,
   vaultPath,
   onChangeVault,
+  inboxPath,
+  onInboxPathChange,
 }: SettingsModalProps) {
   if (!isOpen) return null
 
@@ -46,6 +50,19 @@ function SettingsModal({
             ) : (
               <p className={styles.noVault}>No vault selected</p>
             )}
+          </div>
+          <div className={styles.section}>
+            <h3 className={styles.sectionTitle}>Inbox</h3>
+            <label className={styles.inputLabel}>
+              Inbox folder
+              <input
+                type="text"
+                className={styles.input}
+                value={inboxPath || ''}
+                onChange={(e) => onInboxPathChange?.(e.target.value)}
+                placeholder="e.g., Inbox or GTD/Inbox"
+              />
+            </label>
           </div>
         </div>
       </div>

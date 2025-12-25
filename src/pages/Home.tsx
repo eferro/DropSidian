@@ -9,6 +9,7 @@ import { useAuth } from '../context/AuthContext'
 import { uploadFile, getCurrentAccount, DropboxAccount } from '../lib/dropbox-client'
 import { buildNoteIndex } from '../lib/note-index'
 import { ContentIndex } from '../lib/search'
+import { getInboxPath, storeInboxPath } from '../lib/inbox-storage'
 
 function Home() {
   const { isAuthenticated, isLoading, logout, accessToken } = useAuth()
@@ -21,6 +22,7 @@ function Home() {
   const [filePaths, setFilePaths] = useState<string[]>([])
   const [contentIndex, setContentIndex] = useState<ContentIndex>(new Map())
   const [account, setAccount] = useState<DropboxAccount | null>(null)
+  const [inboxPath, setInboxPath] = useState<string>(() => getInboxPath() || 'Inbox')
 
   useEffect(() => {
     if (!accessToken) return
@@ -67,13 +69,13 @@ function Home() {
     if (!accessToken || !vaultPath) return
 
     const noteName = generateNoteName()
-    const inboxPath = `${vaultPath}/Inbox/${noteName}.md`
+    const noteFullPath = `${vaultPath}/${inboxPath}/${noteName}.md`
 
-    await uploadFile(accessToken, inboxPath, '')
+    await uploadFile(accessToken, noteFullPath, '')
     setIsNewNote(true)
-    setSelectedFile(inboxPath)
+    setSelectedFile(noteFullPath)
     setFileListKey((k) => k + 1)
-  }, [accessToken, vaultPath, generateNoteName])
+  }, [accessToken, vaultPath, inboxPath, generateNoteName])
 
   const handleOpenSettings = useCallback(() => {
     setIsSettingsOpen(true)
@@ -81,6 +83,11 @@ function Home() {
 
   const handleChangeVault = useCallback(() => {
     setShowVaultSelector(true)
+  }, [])
+
+  const handleInboxPathChange = useCallback((path: string) => {
+    setInboxPath(path)
+    storeInboxPath(path)
   }, [])
 
   if (isLoading) {
@@ -168,6 +175,8 @@ function Home() {
         onClose={() => setIsSettingsOpen(false)}
         vaultPath={vaultPath}
         onChangeVault={handleChangeVault}
+        inboxPath={inboxPath}
+        onInboxPathChange={handleInboxPathChange}
       />
     </main>
   )

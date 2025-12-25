@@ -52,5 +52,30 @@ describe('SettingsModal', () => {
 
     expect(onChangeVault).toHaveBeenCalled()
   })
+
+  it('shows inbox path input field', () => {
+    render(<SettingsModal isOpen={true} onClose={vi.fn()} />)
+
+    expect(screen.getByLabelText(/inbox folder/i)).toBeInTheDocument()
+  })
+
+  it('calls onInboxPathChange when inbox path is changed', async () => {
+    const onInboxPathChange = vi.fn()
+
+    render(
+      <SettingsModal
+        isOpen={true}
+        onClose={vi.fn()}
+        inboxPath="Inbox"
+        onInboxPathChange={onInboxPathChange}
+      />
+    )
+
+    const input = screen.getByLabelText(/inbox folder/i)
+    await userEvent.clear(input)
+    await userEvent.type(input, 'GTD/Inbox')
+
+    expect(onInboxPathChange).toHaveBeenCalled()
+  })
 })
 
