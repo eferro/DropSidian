@@ -1,8 +1,8 @@
-import styles from './SearchInput.module.css'
+import styles from "./SearchInput.module.css";
 
 interface SearchInputProps {
-  value: string
-  onChange: (value: string) => void
+  value: string;
+  onChange: (value: string) => void;
 }
 
 function SearchInput({ value, onChange }: SearchInputProps) {
@@ -14,9 +14,7 @@ function SearchInput({ value, onChange }: SearchInputProps) {
       value={value}
       onChange={(e) => onChange(e.target.value)}
     />
-  )
+  );
 }
 
-export default SearchInput
-
-
+export default SearchInput;

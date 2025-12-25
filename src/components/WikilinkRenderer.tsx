@@ -1,8 +1,8 @@
 interface WikilinkRendererProps {
-  target: string
-  displayText: string | null
-  resolved: string | null
-  onNavigate: (path: string) => void
+  target: string;
+  displayText: string | null;
+  resolved: string | null;
+  onNavigate: (path: string) => void;
 }
 
 function WikilinkRenderer({
@@ -11,18 +11,17 @@ function WikilinkRenderer({
   resolved,
   onNavigate,
 }: WikilinkRendererProps) {
-  const text = displayText ?? target
+  const text = displayText ?? target;
 
   if (resolved) {
     return (
       <button type="button" onClick={() => onNavigate(resolved)}>
         {text}
       </button>
-    )
+    );
   }
 
-  return <span>{text}</span>
+  return <span>{text}</span>;
 }
 
-export default WikilinkRenderer
-
+export default WikilinkRenderer;

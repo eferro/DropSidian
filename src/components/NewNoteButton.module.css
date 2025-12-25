@@ -1,0 +1,30 @@
+.container {
+  max-width: 600px;
+  margin: 0 auto 2rem;
+  padding: 0 1rem;
+}
+
+.button {
+  width: 100%;
+  padding: 1rem;
+  background: var(--color-accent);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  box-shadow: var(--shadow-md, 0 4px 6px rgba(0, 0, 0, 0.1));
+}
+
+.button:hover {
+  background: var(--color-accent-hover);
+  box-shadow: var(--shadow-lg, 0 10px 15px rgba(0, 0, 0, 0.1));
+}
+
+.button:active {
+  transform: translateY(1px);
+  box-shadow: var(--shadow-sm, 0 2px 4px rgba(0, 0, 0, 0.1));
+}
+

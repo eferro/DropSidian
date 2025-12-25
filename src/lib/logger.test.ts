@@ -1,42 +1,41 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { createLogger } from './logger'
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { createLogger } from "./logger";
 
-describe('createLogger', () => {
+describe("createLogger", () => {
   beforeEach(() => {
-    vi.spyOn(console, 'log').mockImplementation(() => {})
-  })
+    vi.spyOn(console, "log").mockImplementation(() => {});
+  });
 
   afterEach(() => {
-    vi.restoreAllMocks()
-  })
+    vi.restoreAllMocks();
+  });
 
-  it('should not log when isDev is false', () => {
-    const debugLog = createLogger(false)
+  it("should not log when isDev is false", () => {
+    const debugLog = createLogger(false);
 
-    debugLog('test message', { data: 'value' })
+    debugLog("test message", { data: "value" });
 
-    expect(console.log).not.toHaveBeenCalled()
-  })
+    expect(console.log).not.toHaveBeenCalled();
+  });
 
-  it('should log when isDev is true', () => {
-    const debugLog = createLogger(true)
+  it("should log when isDev is true", () => {
+    const debugLog = createLogger(true);
 
-    debugLog('test message', { data: 'value' })
+    debugLog("test message", { data: "value" });
+
+    expect(console.log).toHaveBeenCalledWith("[DropSidian] test message", {
+      data: "value",
+    });
+  });
+
+  it("should handle undefined data parameter", () => {
+    const debugLog = createLogger(true);
+
+    debugLog("message only");
 
     expect(console.log).toHaveBeenCalledWith(
-      '[DropSidian] test message',
-      { data: 'value' }
-    )
-  })
-
-  it('should handle undefined data parameter', () => {
-    const debugLog = createLogger(true)
-
-    debugLog('message only')
-
-    expect(console.log).toHaveBeenCalledWith(
-      '[DropSidian] message only',
-      undefined
-    )
-  })
-})
+      "[DropSidian] message only",
+      undefined,
+    );
+  });
+});

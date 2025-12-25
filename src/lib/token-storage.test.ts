@@ -1,47 +1,46 @@
-import { describe, it, expect, beforeEach } from 'vitest'
-import 'fake-indexeddb/auto'
+import { describe, it, expect, beforeEach } from "vitest";
+import "fake-indexeddb/auto";
 import {
   storeRefreshToken,
   getRefreshToken,
   clearRefreshToken,
-} from './token-storage'
+} from "./token-storage";
 
-describe('token-storage', () => {
+describe("token-storage", () => {
   beforeEach(async () => {
-    await clearRefreshToken().catch(() => {})
-  })
+    await clearRefreshToken().catch(() => {});
+  });
 
-  it('stores and retrieves refresh token', async () => {
-    const token = 'test-refresh-token-123'
+  it("stores and retrieves refresh token", async () => {
+    const token = "test-refresh-token-123";
 
-    await storeRefreshToken(token)
-    const retrieved = await getRefreshToken()
+    await storeRefreshToken(token);
+    const retrieved = await getRefreshToken();
 
-    expect(retrieved).toBe(token)
-  })
+    expect(retrieved).toBe(token);
+  });
 
-  it('returns null when no token is stored', async () => {
-    const retrieved = await getRefreshToken()
+  it("returns null when no token is stored", async () => {
+    const retrieved = await getRefreshToken();
 
-    expect(retrieved).toBeNull()
-  })
+    expect(retrieved).toBeNull();
+  });
 
-  it('clears stored refresh token', async () => {
-    await storeRefreshToken('token-to-clear')
+  it("clears stored refresh token", async () => {
+    await storeRefreshToken("token-to-clear");
 
-    await clearRefreshToken()
-    const retrieved = await getRefreshToken()
+    await clearRefreshToken();
+    const retrieved = await getRefreshToken();
 
-    expect(retrieved).toBeNull()
-  })
+    expect(retrieved).toBeNull();
+  });
 
-  it('overwrites existing token when storing new one', async () => {
-    await storeRefreshToken('old-token')
+  it("overwrites existing token when storing new one", async () => {
+    await storeRefreshToken("old-token");
 
-    await storeRefreshToken('new-token')
-    const retrieved = await getRefreshToken()
+    await storeRefreshToken("new-token");
+    const retrieved = await getRefreshToken();
 
-    expect(retrieved).toBe('new-token')
-  })
-})
-
+    expect(retrieved).toBe("new-token");
+  });
+});

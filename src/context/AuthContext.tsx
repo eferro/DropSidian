@@ -4,30 +4,34 @@ import {
   useState,
   useEffect,
   ReactNode,
-} from 'react'
-import { storeRefreshToken, clearRefreshToken, getRefreshToken } from '../lib/token-storage'
-import { refreshAccessToken, revokeToken } from '../lib/dropbox-auth'
+} from "react";
+import {
+  storeRefreshToken,
+  clearRefreshToken,
+  getRefreshToken,
+} from "../lib/token-storage";
+import { refreshAccessToken, revokeToken } from "../lib/dropbox-auth";
 
 interface AuthState {
-  accessToken: string | null
-  accountId: string | null
-  isAuthenticated: boolean
-  isLoading: boolean
+  accessToken: string | null;
+  accountId: string | null;
+  isAuthenticated: boolean;
+  isLoading: boolean;
 }
 
 interface AuthContextType extends AuthState {
   setTokens: (
     accessToken: string,
     refreshToken: string,
-    accountId: string
-  ) => void
-  logout: () => Promise<void>
+    accountId: string,
+  ) => void;
+  logout: () => Promise<void>;
 }
 
-const AuthContext = createContext<AuthContextType | null>(null)
+const AuthContext = createContext<AuthContextType | null>(null);
 
 interface AuthProviderProps {
-  children: ReactNode
+  children: ReactNode;
 }
 
 export function AuthProvider({ children }: AuthProviderProps) {
@@ -36,14 +40,14 @@ export function AuthProvider({ children }: AuthProviderProps) {
     accountId: null,
     isAuthenticated: false,
     isLoading: true,
-  })
+  });
 
   useEffect(() => {
     getRefreshToken()
       .then((refreshToken) => {
         if (!refreshToken) {
-          setAuthState((prev) => ({ ...prev, isLoading: false }))
-          return
+          setAuthState((prev) => ({ ...prev, isLoading: false }));
+          return;
         }
 
         return refreshAccessToken(refreshToken).then((tokens) => {
@@ -52,54 +56,54 @@ export function AuthProvider({ children }: AuthProviderProps) {
             accountId: tokens.account_id,
             isAuthenticated: true,
             isLoading: false,
-          })
-        })
+          });
+        });
       })
       .catch(() => {
-        clearRefreshToken()
-        setAuthState((prev) => ({ ...prev, isLoading: false }))
-      })
-  }, [])
+        clearRefreshToken();
+        setAuthState((prev) => ({ ...prev, isLoading: false }));
+      });
+  }, []);
 
   function setTokens(
     accessToken: string,
     refreshToken: string,
-    accountId: string
+    accountId: string,
   ): void {
-    storeRefreshToken(refreshToken)
+    storeRefreshToken(refreshToken);
     setAuthState({
       accessToken,
       accountId,
       isAuthenticated: true,
       isLoading: false,
-    })
+    });
   }
 
   async function logout(): Promise<void> {
     if (authState.accessToken) {
-      await revokeToken(authState.accessToken).catch(() => {})
+      await revokeToken(authState.accessToken).catch(() => {});
     }
-    clearRefreshToken()
+    clearRefreshToken();
     setAuthState({
       accessToken: null,
       accountId: null,
       isAuthenticated: false,
       isLoading: false,
-    })
+    });
   }
 
   return (
     <AuthContext.Provider value={{ ...authState, setTokens, logout }}>
       {children}
     </AuthContext.Provider>
-  )
+  );
 }
 
 // eslint-disable-next-line react-refresh/only-export-components
 export function useAuth(): AuthContextType {
-  const context = useContext(AuthContext)
+  const context = useContext(AuthContext);
   if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider')
+    throw new Error("useAuth must be used within an AuthProvider");
   }
-  return context
+  return context;
 }

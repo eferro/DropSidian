@@ -1,8 +1,8 @@
-import { buildAuthUrl } from '../lib/dropbox-auth'
+import { buildAuthUrl } from "../lib/dropbox-auth";
 
 async function handleConnect(): Promise<void> {
-  const authUrl = await buildAuthUrl()
-  window.location.href = authUrl
+  const authUrl = await buildAuthUrl();
+  window.location.href = authUrl;
 }
 
 function ConnectDropboxButton() {
@@ -10,9 +10,7 @@ function ConnectDropboxButton() {
     <button type="button" onClick={handleConnect}>
       Connect Dropbox
     </button>
-  )
+  );
 }
 
-export default ConnectDropboxButton
-
-
+export default ConnectDropboxButton;

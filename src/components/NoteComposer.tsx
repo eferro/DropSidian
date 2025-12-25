@@ -1,22 +1,22 @@
-import { useState } from 'react'
-import styles from './NoteComposer.module.css'
+import { useState } from "react";
+import styles from "./NoteComposer.module.css";
 
 interface NoteComposerProps {
-  onCreateNote: (title: string, body: string) => void
+  onCreateNote: (title: string, body: string) => void;
 }
 
 function NoteComposer({ onCreateNote }: NoteComposerProps) {
-  const [isExpanded, setIsExpanded] = useState(false)
-  const [title, setTitle] = useState('')
-  const [body, setBody] = useState('')
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [title, setTitle] = useState("");
+  const [body, setBody] = useState("");
 
   function handleClose(): void {
     if (title.trim() || body.trim()) {
-      onCreateNote(title, body)
+      onCreateNote(title, body);
     }
-    setIsExpanded(false)
-    setTitle('')
-    setBody('')
+    setIsExpanded(false);
+    setTitle("");
+    setBody("");
   }
 
   if (!isExpanded) {
@@ -31,7 +31,7 @@ function NoteComposer({ onCreateNote }: NoteComposerProps) {
           />
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -51,13 +51,17 @@ function NoteComposer({ onCreateNote }: NoteComposerProps) {
           onChange={(e) => setBody(e.target.value)}
         />
         <div className={styles.actions}>
-          <button type="button" className={styles.closeButton} onClick={handleClose}>
+          <button
+            type="button"
+            className={styles.closeButton}
+            onClick={handleClose}
+          >
             Close
           </button>
         </div>
       </div>
     </div>
-  )
+  );
 }
 
-export default NoteComposer
+export default NoteComposer;

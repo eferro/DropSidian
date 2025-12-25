@@ -1,34 +1,34 @@
-import { useState, useEffect } from 'react'
-import { storeVaultPath, getVaultPath } from '../lib/vault-storage'
+import { useState, useEffect } from "react";
+import { storeVaultPath, getVaultPath } from "../lib/vault-storage";
 
 interface VaultSelectorProps {
-  onVaultSelected: (path: string) => void
+  onVaultSelected: (path: string) => void;
 }
 
 function VaultSelector({ onVaultSelected }: VaultSelectorProps) {
-  const [path, setPath] = useState('')
-  const [savedPath, setSavedPath] = useState<string | null>(null)
+  const [path, setPath] = useState("");
+  const [savedPath, setSavedPath] = useState<string | null>(null);
 
   useEffect(() => {
-    const stored = getVaultPath()
+    const stored = getVaultPath();
     if (stored) {
-      setSavedPath(stored)
-      onVaultSelected(stored)
+      setSavedPath(stored);
+      onVaultSelected(stored);
     }
-  }, [onVaultSelected])
+  }, [onVaultSelected]);
 
   function handleSubmit(e: React.FormEvent): void {
-    e.preventDefault()
-    if (!path.trim()) return
+    e.preventDefault();
+    if (!path.trim()) return;
 
-    const normalizedPath = path.startsWith('/') ? path : `/${path}`
-    storeVaultPath(normalizedPath)
-    setSavedPath(normalizedPath)
-    onVaultSelected(normalizedPath)
+    const normalizedPath = path.startsWith("/") ? path : `/${path}`;
+    storeVaultPath(normalizedPath);
+    setSavedPath(normalizedPath);
+    onVaultSelected(normalizedPath);
   }
 
   function handleChange(): void {
-    setSavedPath(null)
+    setSavedPath(null);
   }
 
   if (savedPath) {
@@ -41,7 +41,7 @@ function VaultSelector({ onVaultSelected }: VaultSelectorProps) {
           Change vault
         </button>
       </div>
-    )
+    );
   }
 
   return (
@@ -57,9 +57,7 @@ function VaultSelector({ onVaultSelected }: VaultSelectorProps) {
       </label>
       <button type="submit">Set vault</button>
     </form>
-  )
+  );
 }
 
-export default VaultSelector
-
-
+export default VaultSelector;

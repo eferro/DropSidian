@@ -1,172 +1,197 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { render, screen, waitFor } from '@testing-library/react'
-import { MemoryRouter } from 'react-router-dom'
-import Callback from './Callback'
+import { describe, it, expect, beforeEach, vi } from "vitest";
+import { render, screen, waitFor } from "@testing-library/react";
+import { MemoryRouter } from "react-router-dom";
+import Callback from "./Callback";
 
-const mockNavigate = vi.fn()
-const mockSetTokens = vi.fn()
+const mockNavigate = vi.fn();
+const mockSetTokens = vi.fn();
 
-vi.mock('react-router-dom', async () => {
-  const actual = await vi.importActual('react-router-dom')
+vi.mock("react-router-dom", async () => {
+  const actual = await vi.importActual("react-router-dom");
   return {
     ...actual,
     useNavigate: () => mockNavigate,
-  }
-})
+  };
+});
 
-vi.mock('../context/AuthContext', () => ({
+vi.mock("../context/AuthContext", () => ({
   useAuth: () => ({
     setTokens: mockSetTokens,
   }),
-}))
+}));
 
-vi.mock('../lib/dropbox-auth', () => ({
+vi.mock("../lib/dropbox-auth", () => ({
   validateOAuthState: vi.fn(),
   getStoredCodeVerifier: vi.fn(),
   exchangeCodeForTokens: vi.fn(),
   clearOAuthState: vi.fn(),
-}))
+}));
 
-import { validateOAuthState, getStoredCodeVerifier, exchangeCodeForTokens, TokenResponse } from '../lib/dropbox-auth'
+import {
+  validateOAuthState,
+  getStoredCodeVerifier,
+  exchangeCodeForTokens,
+  TokenResponse,
+} from "../lib/dropbox-auth";
 
 function renderWithRouter(searchParams: string) {
   return render(
     <MemoryRouter initialEntries={[`/callback${searchParams}`]}>
       <Callback />
-    </MemoryRouter>
-  )
+    </MemoryRouter>,
+  );
 }
 
-describe('Callback', () => {
+describe("Callback", () => {
   beforeEach(() => {
-    vi.clearAllMocks()
-  })
+    vi.clearAllMocks();
+  });
 
-  it('shows error when no authorization code is received', async () => {
-    renderWithRouter('')
-
-    await waitFor(() => {
-      expect(screen.getByText('No authorization code received')).toBeInTheDocument()
-    })
-  })
-
-  it('shows error when OAuth returns error', async () => {
-    renderWithRouter('?error=access_denied&error_description=User+denied+access')
+  it("shows error when no authorization code is received", async () => {
+    renderWithRouter("");
 
     await waitFor(() => {
-      expect(screen.getByText(/OAuth error: access_denied/)).toBeInTheDocument()
-    })
-  })
+      expect(
+        screen.getByText("No authorization code received"),
+      ).toBeInTheDocument();
+    });
+  });
 
-  it('shows error when state is invalid (CSRF protection)', async () => {
-    vi.mocked(validateOAuthState).mockReturnValue(false)
-
-    renderWithRouter('?code=auth-code&state=invalid-state')
+  it("shows error when OAuth returns error", async () => {
+    renderWithRouter(
+      "?error=access_denied&error_description=User+denied+access",
+    );
 
     await waitFor(() => {
-      expect(screen.getByText(/Invalid state parameter/)).toBeInTheDocument()
-    })
-  })
+      expect(
+        screen.getByText(/OAuth error: access_denied/),
+      ).toBeInTheDocument();
+    });
+  });
 
-  it('exchanges code for tokens on valid callback', async () => {
-    vi.mocked(validateOAuthState).mockReturnValue(true)
-    vi.mocked(getStoredCodeVerifier).mockReturnValue('verifier')
+  it("shows error when state is invalid (CSRF protection)", async () => {
+    vi.mocked(validateOAuthState).mockReturnValue(false);
+
+    renderWithRouter("?code=auth-code&state=invalid-state");
+
+    await waitFor(() => {
+      expect(screen.getByText(/Invalid state parameter/)).toBeInTheDocument();
+    });
+  });
+
+  it("exchanges code for tokens on valid callback", async () => {
+    vi.mocked(validateOAuthState).mockReturnValue(true);
+    vi.mocked(getStoredCodeVerifier).mockReturnValue("verifier");
     vi.mocked(exchangeCodeForTokens).mockResolvedValue({
-      access_token: 'access-123',
-      refresh_token: 'refresh-123',
+      access_token: "access-123",
+      refresh_token: "refresh-123",
       expires_in: 14400,
-      token_type: 'bearer',
-      account_id: 'dbid:account-123',
-    })
+      token_type: "bearer",
+      account_id: "dbid:account-123",
+    });
 
-    renderWithRouter('?code=auth-code&state=valid-state')
-
-    await waitFor(() => {
-      expect(exchangeCodeForTokens).toHaveBeenCalledWith('auth-code')
-    })
+    renderWithRouter("?code=auth-code&state=valid-state");
 
     await waitFor(() => {
-      expect(mockSetTokens).toHaveBeenCalledWith('access-123', 'refresh-123', 'dbid:account-123')
-      expect(mockNavigate).toHaveBeenCalledWith('/', { replace: true })
-    })
-  })
-
-  it('shows error when token exchange fails', async () => {
-    vi.mocked(validateOAuthState).mockReturnValue(true)
-    vi.mocked(getStoredCodeVerifier).mockReturnValue('verifier')
-    vi.mocked(exchangeCodeForTokens).mockRejectedValue(new Error('Token exchange failed'))
-
-    renderWithRouter('?code=auth-code&state=valid-state')
+      expect(exchangeCodeForTokens).toHaveBeenCalledWith("auth-code");
+    });
 
     await waitFor(() => {
-      expect(screen.getByText('Token exchange failed')).toBeInTheDocument()
-    })
-  })
+      expect(mockSetTokens).toHaveBeenCalledWith(
+        "access-123",
+        "refresh-123",
+        "dbid:account-123",
+      );
+      expect(mockNavigate).toHaveBeenCalledWith("/", { replace: true });
+    });
+  });
 
-  it('shows processing state while exchanging tokens', () => {
-    vi.mocked(validateOAuthState).mockReturnValue(true)
-    vi.mocked(getStoredCodeVerifier).mockReturnValue('verifier')
-    vi.mocked(exchangeCodeForTokens).mockReturnValue(new Promise(() => {}))
+  it("shows error when token exchange fails", async () => {
+    vi.mocked(validateOAuthState).mockReturnValue(true);
+    vi.mocked(getStoredCodeVerifier).mockReturnValue("verifier");
+    vi.mocked(exchangeCodeForTokens).mockRejectedValue(
+      new Error("Token exchange failed"),
+    );
 
-    renderWithRouter('?code=auth-code&state=valid-state')
-
-    expect(screen.getByText('Processing authentication...')).toBeInTheDocument()
-  })
-
-  it('skips duplicate processing when already exchanging tokens', async () => {
-    vi.mocked(validateOAuthState).mockReturnValue(true)
-    vi.mocked(getStoredCodeVerifier).mockReturnValue('verifier')
-    const pendingPromise = new Promise<TokenResponse>(() => {}) as Promise<TokenResponse>
-    vi.mocked(exchangeCodeForTokens).mockReturnValue(pendingPromise)
-
-    const { rerender } = renderWithRouter('?code=auth-code&state=valid-state')
+    renderWithRouter("?code=auth-code&state=valid-state");
 
     await waitFor(() => {
-      expect(exchangeCodeForTokens).toHaveBeenCalledTimes(1)
-    })
+      expect(screen.getByText("Token exchange failed")).toBeInTheDocument();
+    });
+  });
+
+  it("shows processing state while exchanging tokens", () => {
+    vi.mocked(validateOAuthState).mockReturnValue(true);
+    vi.mocked(getStoredCodeVerifier).mockReturnValue("verifier");
+    vi.mocked(exchangeCodeForTokens).mockReturnValue(new Promise(() => {}));
+
+    renderWithRouter("?code=auth-code&state=valid-state");
+
+    expect(
+      screen.getByText("Processing authentication..."),
+    ).toBeInTheDocument();
+  });
+
+  it("skips duplicate processing when already exchanging tokens", async () => {
+    vi.mocked(validateOAuthState).mockReturnValue(true);
+    vi.mocked(getStoredCodeVerifier).mockReturnValue("verifier");
+    const pendingPromise = new Promise<TokenResponse>(
+      () => {},
+    ) as Promise<TokenResponse>;
+    vi.mocked(exchangeCodeForTokens).mockReturnValue(pendingPromise);
+
+    const { rerender } = renderWithRouter("?code=auth-code&state=valid-state");
+
+    await waitFor(() => {
+      expect(exchangeCodeForTokens).toHaveBeenCalledTimes(1);
+    });
 
     rerender(
-      <MemoryRouter initialEntries={['/callback?code=auth-code&state=valid-state']}>
+      <MemoryRouter
+        initialEntries={["/callback?code=auth-code&state=valid-state"]}
+      >
         <Callback />
-      </MemoryRouter>
-    )
+      </MemoryRouter>,
+    );
 
     await waitFor(() => {
-      expect(exchangeCodeForTokens).toHaveBeenCalledTimes(1)
-    })
-  })
-})
+      expect(exchangeCodeForTokens).toHaveBeenCalledTimes(1);
+    });
+  });
+});
 
-describe('Callback with fresh module state', () => {
+describe("Callback with fresh module state", () => {
   beforeEach(async () => {
-    vi.clearAllMocks()
-    vi.resetModules()
-  })
+    vi.clearAllMocks();
+    vi.resetModules();
+  });
 
-  it('stops processing silently when no code verifier is found', async () => {
-    const { validateOAuthState, getStoredCodeVerifier, exchangeCodeForTokens } = await import('../lib/dropbox-auth')
-    vi.mocked(validateOAuthState).mockReturnValue(true)
-    vi.mocked(getStoredCodeVerifier).mockReturnValue(null)
+  it("stops processing silently when no code verifier is found", async () => {
+    const { validateOAuthState, getStoredCodeVerifier, exchangeCodeForTokens } =
+      await import("../lib/dropbox-auth");
+    vi.mocked(validateOAuthState).mockReturnValue(true);
+    vi.mocked(getStoredCodeVerifier).mockReturnValue(null);
     vi.mocked(exchangeCodeForTokens).mockResolvedValue({
-      access_token: 'test',
-      refresh_token: 'test',
+      access_token: "test",
+      refresh_token: "test",
       expires_in: 3600,
-      token_type: 'bearer',
-      account_id: 'test',
-    })
+      token_type: "bearer",
+      account_id: "test",
+    });
 
-    const { default: Callback } = await import('./Callback')
-    const { MemoryRouter } = await import('react-router-dom')
+    const { default: Callback } = await import("./Callback");
+    const { MemoryRouter } = await import("react-router-dom");
 
     render(
-      <MemoryRouter initialEntries={['/callback?code=auth-code&state=valid-state']}>
+      <MemoryRouter
+        initialEntries={["/callback?code=auth-code&state=valid-state"]}
+      >
         <Callback />
-      </MemoryRouter>
-    )
+      </MemoryRouter>,
+    );
 
     await waitFor(() => {
-      expect(exchangeCodeForTokens).not.toHaveBeenCalled()
-    })
-  })
-})
-
+      expect(exchangeCodeForTokens).not.toHaveBeenCalled();
+    });
+  });
+});

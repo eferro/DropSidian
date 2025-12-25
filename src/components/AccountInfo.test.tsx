@@ -1,85 +1,85 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { render, screen, waitFor } from '@testing-library/react'
-import AccountInfo from './AccountInfo'
+import { describe, it, expect, beforeEach, vi } from "vitest";
+import { render, screen, waitFor } from "@testing-library/react";
+import AccountInfo from "./AccountInfo";
 
-vi.mock('../context/AuthContext', () => ({
+vi.mock("../context/AuthContext", () => ({
   useAuth: vi.fn(),
-}))
+}));
 
-vi.mock('../lib/dropbox-client', () => ({
+vi.mock("../lib/dropbox-client", () => ({
   getCurrentAccount: vi.fn(),
-}))
+}));
 
-import { useAuth } from '../context/AuthContext'
-import { getCurrentAccount } from '../lib/dropbox-client'
+import { useAuth } from "../context/AuthContext";
+import { getCurrentAccount } from "../lib/dropbox-client";
 
-describe('AccountInfo', () => {
+describe("AccountInfo", () => {
   beforeEach(() => {
-    vi.clearAllMocks()
-  })
+    vi.clearAllMocks();
+  });
 
-  it('shows loading state initially', () => {
+  it("shows loading state initially", () => {
     vi.mocked(useAuth).mockReturnValue({
-      accessToken: 'test-token',
+      accessToken: "test-token",
       accountId: null,
       isAuthenticated: true,
       isLoading: false,
       setTokens: vi.fn(),
       logout: vi.fn(),
-    })
-    vi.mocked(getCurrentAccount).mockReturnValue(new Promise(() => {}))
+    });
+    vi.mocked(getCurrentAccount).mockReturnValue(new Promise(() => {}));
 
-    render(<AccountInfo />)
+    render(<AccountInfo />);
 
-    expect(screen.getByText('Loading account info...')).toBeInTheDocument()
-  })
+    expect(screen.getByText("Loading account info...")).toBeInTheDocument();
+  });
 
-  it('shows account info on success', async () => {
+  it("shows account info on success", async () => {
     vi.mocked(useAuth).mockReturnValue({
-      accessToken: 'test-token',
+      accessToken: "test-token",
       accountId: null,
       isAuthenticated: true,
       isLoading: false,
       setTokens: vi.fn(),
       logout: vi.fn(),
-    })
+    });
     vi.mocked(getCurrentAccount).mockResolvedValue({
-      account_id: 'dbid:123',
-      email: 'user@example.com',
+      account_id: "dbid:123",
+      email: "user@example.com",
       name: {
-        display_name: 'John Doe',
-        given_name: 'John',
-        surname: 'Doe',
+        display_name: "John Doe",
+        given_name: "John",
+        surname: "Doe",
       },
-    })
+    });
 
-    render(<AccountInfo />)
+    render(<AccountInfo />);
 
     await waitFor(() => {
-      expect(screen.getByText('John Doe')).toBeInTheDocument()
-    })
-    expect(screen.getByText('user@example.com')).toBeInTheDocument()
-  })
+      expect(screen.getByText("John Doe")).toBeInTheDocument();
+    });
+    expect(screen.getByText("user@example.com")).toBeInTheDocument();
+  });
 
-  it('shows error on failure', async () => {
+  it("shows error on failure", async () => {
     vi.mocked(useAuth).mockReturnValue({
-      accessToken: 'test-token',
+      accessToken: "test-token",
       accountId: null,
       isAuthenticated: true,
       isLoading: false,
       setTokens: vi.fn(),
       logout: vi.fn(),
-    })
-    vi.mocked(getCurrentAccount).mockRejectedValue(new Error('API Error'))
+    });
+    vi.mocked(getCurrentAccount).mockRejectedValue(new Error("API Error"));
 
-    render(<AccountInfo />)
+    render(<AccountInfo />);
 
     await waitFor(() => {
-      expect(screen.getByText('Error: API Error')).toBeInTheDocument()
-    })
-  })
+      expect(screen.getByText("Error: API Error")).toBeInTheDocument();
+    });
+  });
 
-  it('renders nothing when no access token', async () => {
+  it("renders nothing when no access token", async () => {
     vi.mocked(useAuth).mockReturnValue({
       accessToken: null,
       accountId: null,
@@ -87,15 +87,15 @@ describe('AccountInfo', () => {
       isLoading: false,
       setTokens: vi.fn(),
       logout: vi.fn(),
-    })
+    });
 
-    const { container } = render(<AccountInfo />)
+    const { container } = render(<AccountInfo />);
 
     await waitFor(() => {
-      expect(screen.queryByText('Loading account info...')).not.toBeInTheDocument()
-    })
-    expect(container.firstChild).toBeNull()
-  })
-})
-
-
+      expect(
+        screen.queryByText("Loading account info..."),
+      ).not.toBeInTheDocument();
+    });
+    expect(container.firstChild).toBeNull();
+  });
+});

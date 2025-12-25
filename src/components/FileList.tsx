@@ -1,89 +1,96 @@
-import { useEffect, useState } from 'react'
-import { listFolder, listAllFiles, DropboxEntry } from '../lib/dropbox-client'
-import { useAuth } from '../context/AuthContext'
-import { combinedSearch, ContentIndex } from '../lib/search'
-import { getParentPath, removeExtension } from '../lib/path-utils'
-import SearchInput from './SearchInput'
-import styles from './FileList.module.css'
+import { useEffect, useState } from "react";
+import { listFolder, listAllFiles, DropboxEntry } from "../lib/dropbox-client";
+import { useAuth } from "../context/AuthContext";
+import { combinedSearch, ContentIndex } from "../lib/search";
+import { getParentPath, removeExtension } from "../lib/path-utils";
+import SearchInput from "./SearchInput";
+import styles from "./FileList.module.css";
 
 interface FileListProps {
-  vaultPath: string
-  onFileSelect: (path: string) => void
-  onFilesLoaded?: (filePaths: string[]) => void
-  contentIndex?: ContentIndex
+  vaultPath: string;
+  onFileSelect: (path: string) => void;
+  onFilesLoaded?: (filePaths: string[]) => void;
+  contentIndex?: ContentIndex;
 }
 
 function isHidden(entry: DropboxEntry): boolean {
-  return entry.name.startsWith('.')
+  return entry.name.startsWith(".");
 }
 
 function isMarkdownFile(entry: DropboxEntry): boolean {
-  return entry['.tag'] === 'file' && entry.name.endsWith('.md') && !isHidden(entry)
+  return (
+    entry[".tag"] === "file" && entry.name.endsWith(".md") && !isHidden(entry)
+  );
 }
 
 function isFolder(entry: DropboxEntry): boolean {
-  return entry['.tag'] === 'folder' && !isHidden(entry)
+  return entry[".tag"] === "folder" && !isHidden(entry);
 }
 
 function getCurrentFolderName(path: string, vaultPath: string): string {
   if (path === vaultPath) {
-    return path.split('/').pop() ?? 'Vault'
+    return path.split("/").pop() ?? "Vault";
   }
-  return path.split('/').pop() ?? ''
+  return path.split("/").pop() ?? "";
 }
 
-function FileList({ vaultPath, onFileSelect, onFilesLoaded, contentIndex }: FileListProps) {
-  const { accessToken } = useAuth()
-  const [entries, setEntries] = useState<DropboxEntry[]>([])
-  const [allMarkdownPaths, setAllMarkdownPaths] = useState<string[]>([])
-  const [error, setError] = useState<string | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [currentPath, setCurrentPath] = useState(vaultPath)
-  const [searchQuery, setSearchQuery] = useState('')
+function FileList({
+  vaultPath,
+  onFileSelect,
+  onFilesLoaded,
+  contentIndex,
+}: FileListProps) {
+  const { accessToken } = useAuth();
+  const [entries, setEntries] = useState<DropboxEntry[]>([]);
+  const [allMarkdownPaths, setAllMarkdownPaths] = useState<string[]>([]);
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [currentPath, setCurrentPath] = useState(vaultPath);
+  const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
-    setCurrentPath(vaultPath)
-    setSearchQuery('')
-  }, [vaultPath])
+    setCurrentPath(vaultPath);
+    setSearchQuery("");
+  }, [vaultPath]);
 
   useEffect(() => {
-    if (!accessToken || !vaultPath) return
+    if (!accessToken || !vaultPath) return;
 
     listAllFiles(accessToken, vaultPath)
       .then((allEntries) => {
         const markdownPaths = allEntries
           .filter(isMarkdownFile)
-          .map((entry) => entry.path_display)
-        setAllMarkdownPaths(markdownPaths)
+          .map((entry) => entry.path_display);
+        setAllMarkdownPaths(markdownPaths);
         if (onFilesLoaded) {
-          onFilesLoaded(markdownPaths)
+          onFilesLoaded(markdownPaths);
         }
       })
       .catch(() => {
         // Silently fail - error state is handled by component state
-      })
-  }, [accessToken, vaultPath, onFilesLoaded])
+      });
+  }, [accessToken, vaultPath, onFilesLoaded]);
 
   useEffect(() => {
     if (!accessToken || !currentPath) {
-      setLoading(false)
-      return
+      setLoading(false);
+      return;
     }
 
-    setLoading(true)
+    setLoading(true);
     listFolder(accessToken, currentPath)
       .then((response) => {
         const visibleEntries = response.entries.filter(
-          (entry) => isFolder(entry) || isMarkdownFile(entry)
-        )
-        setEntries(visibleEntries)
-        setLoading(false)
+          (entry) => isFolder(entry) || isMarkdownFile(entry),
+        );
+        setEntries(visibleEntries);
+        setLoading(false);
       })
       .catch((err) => {
-        setError(err.message)
-        setLoading(false)
-      })
-  }, [accessToken, currentPath])
+        setError(err.message);
+        setLoading(false);
+      });
+  }, [accessToken, currentPath]);
 
   if (loading) {
     return (
@@ -91,11 +98,11 @@ function FileList({ vaultPath, onFileSelect, onFilesLoaded, contentIndex }: File
         <div className={styles.spinner} />
         Loading files...
       </div>
-    )
+    );
   }
 
   if (error) {
-    return <div className={styles.errorContainer}>Error: {error}</div>
+    return <div className={styles.errorContainer}>Error: {error}</div>;
   }
 
   if (entries.length === 0) {
@@ -104,24 +111,24 @@ function FileList({ vaultPath, onFileSelect, onFilesLoaded, contentIndex }: File
         <div className={styles.emptyIcon}>📭</div>
         <p className={styles.emptyText}>No markdown files found in vault.</p>
       </div>
-    )
+    );
   }
 
-  const folders = entries.filter(isFolder)
-  const files = entries.filter(isMarkdownFile)
-  const isInSubdirectory = currentPath !== vaultPath
-  const currentFolderName = getCurrentFolderName(currentPath, vaultPath)
-  const isSearching = searchQuery.trim().length > 0
+  const folders = entries.filter(isFolder);
+  const files = entries.filter(isMarkdownFile);
+  const isInSubdirectory = currentPath !== vaultPath;
+  const currentFolderName = getCurrentFolderName(currentPath, vaultPath);
+  const isSearching = searchQuery.trim().length > 0;
   const searchResults = isSearching
     ? combinedSearch(allMarkdownPaths, contentIndex ?? new Map(), searchQuery)
-    : []
+    : [];
 
   function handleFolderClick(folderPath: string) {
-    setCurrentPath(folderPath)
+    setCurrentPath(folderPath);
   }
 
   function handleBackClick() {
-    setCurrentPath(getParentPath(currentPath))
+    setCurrentPath(getParentPath(currentPath));
   }
 
   return (
@@ -144,7 +151,7 @@ function FileList({ vaultPath, onFileSelect, onFilesLoaded, contentIndex }: File
                 >
                   <span className={styles.fileIcon}>📝</span>
                   <span className={styles.itemName}>
-                    {removeExtension(path.split('/').pop() || '')}
+                    {removeExtension(path.split("/").pop() || "")}
                   </span>
                 </button>
               </li>
@@ -158,14 +165,18 @@ function FileList({ vaultPath, onFileSelect, onFilesLoaded, contentIndex }: File
         <>
           <div className={styles.header}>
             {isInSubdirectory && (
-              <button type="button" className={styles.backButton} onClick={handleBackClick}>
+              <button
+                type="button"
+                className={styles.backButton}
+                onClick={handleBackClick}
+              >
                 ← Back
               </button>
             )}
             <span className={styles.breadcrumb}>📂 {currentFolderName}</span>
             <span className={styles.stats}>
               {folders.length > 0 && `${folders.length} 📁`}
-              {folders.length > 0 && files.length > 0 && ' · '}
+              {folders.length > 0 && files.length > 0 && " · "}
               {files.length} notes
             </span>
           </div>
@@ -191,7 +202,9 @@ function FileList({ vaultPath, onFileSelect, onFilesLoaded, contentIndex }: File
                   onClick={() => onFileSelect(entry.path_display)}
                 >
                   <span className={styles.fileIcon}>📝</span>
-                  <span className={styles.itemName}>{removeExtension(entry.name)}</span>
+                  <span className={styles.itemName}>
+                    {removeExtension(entry.name)}
+                  </span>
                 </button>
               </li>
             ))}
@@ -199,8 +212,7 @@ function FileList({ vaultPath, onFileSelect, onFilesLoaded, contentIndex }: File
         </>
       )}
     </div>
-  )
+  );
 }
 
-export default FileList
-
+export default FileList;

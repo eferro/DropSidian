@@ -1,30 +1,32 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { render, screen, waitFor } from '@testing-library/react'
-import { MemoryRouter, Routes, Route } from 'react-router-dom'
+import { describe, it, expect, beforeEach, vi } from "vitest";
+import { render, screen, waitFor } from "@testing-library/react";
+import { MemoryRouter, Routes, Route } from "react-router-dom";
 
-vi.mock('./context/AuthContext', () => ({
-  AuthProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
-}))
+vi.mock("./context/AuthContext", () => ({
+  AuthProvider: ({ children }: { children: React.ReactNode }) => (
+    <>{children}</>
+  ),
+}));
 
-vi.mock('./pages/Home', () => ({
+vi.mock("./pages/Home", () => ({
   default: () => <div data-testid="home-page">Home Page</div>,
-}))
+}));
 
-vi.mock('./pages/Callback', () => ({
+vi.mock("./pages/Callback", () => ({
   default: () => <div data-testid="callback-page">Callback Page</div>,
-}))
+}));
 
-vi.mock('./pages/NotFound', () => ({
+vi.mock("./pages/NotFound", () => ({
   default: () => <div data-testid="not-found-page">Not Found Page</div>,
-}))
+}));
 
-import Home from './pages/Home'
-import Callback from './pages/Callback'
-import NotFound from './pages/NotFound'
-import { AuthProvider } from './context/AuthContext'
-import { OAuthRedirectHandler } from './App'
+import Home from "./pages/Home";
+import Callback from "./pages/Callback";
+import NotFound from "./pages/NotFound";
+import { AuthProvider } from "./context/AuthContext";
+import { OAuthRedirectHandler } from "./App";
 
-function TestApp({ initialRoute = '/' }: { initialRoute?: string }) {
+function TestApp({ initialRoute = "/" }: { initialRoute?: string }) {
   return (
     <AuthProvider>
       <MemoryRouter initialEntries={[initialRoute]}>
@@ -35,10 +37,14 @@ function TestApp({ initialRoute = '/' }: { initialRoute?: string }) {
         </Routes>
       </MemoryRouter>
     </AuthProvider>
-  )
+  );
 }
 
-function TestAppWithOAuthHandler({ initialRoute = '/' }: { initialRoute?: string }) {
+function TestAppWithOAuthHandler({
+  initialRoute = "/",
+}: {
+  initialRoute?: string;
+}) {
   return (
     <AuthProvider>
       <MemoryRouter initialEntries={[initialRoute]}>
@@ -50,127 +56,127 @@ function TestAppWithOAuthHandler({ initialRoute = '/' }: { initialRoute?: string
         </Routes>
       </MemoryRouter>
     </AuthProvider>
-  )
+  );
 }
 
-describe('App routing', () => {
+describe("App routing", () => {
   beforeEach(() => {
-    vi.clearAllMocks()
-  })
+    vi.clearAllMocks();
+  });
 
-  it('renders home page at root route', async () => {
-    render(<TestApp initialRoute="/" />)
-
-    await waitFor(() => {
-      expect(screen.getByTestId('home-page')).toBeInTheDocument()
-    })
-  })
-
-  it('renders callback page at /callback route', async () => {
-    render(<TestApp initialRoute="/callback?code=test&state=test" />)
+  it("renders home page at root route", async () => {
+    render(<TestApp initialRoute="/" />);
 
     await waitFor(() => {
-      expect(screen.getByTestId('callback-page')).toBeInTheDocument()
-    })
-  })
+      expect(screen.getByTestId("home-page")).toBeInTheDocument();
+    });
+  });
 
-  it('renders not found page for unknown routes', async () => {
-    render(<TestApp initialRoute="/unknown-route" />)
+  it("renders callback page at /callback route", async () => {
+    render(<TestApp initialRoute="/callback?code=test&state=test" />);
 
     await waitFor(() => {
-      expect(screen.getByTestId('not-found-page')).toBeInTheDocument()
-    })
-  })
-})
+      expect(screen.getByTestId("callback-page")).toBeInTheDocument();
+    });
+  });
 
-describe('OAuthRedirectHandler', () => {
-  const originalLocation = window.location
+  it("renders not found page for unknown routes", async () => {
+    render(<TestApp initialRoute="/unknown-route" />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId("not-found-page")).toBeInTheDocument();
+    });
+  });
+});
+
+describe("OAuthRedirectHandler", () => {
+  const originalLocation = window.location;
 
   beforeEach(() => {
-    vi.clearAllMocks()
-  })
+    vi.clearAllMocks();
+  });
 
   afterEach(() => {
-    Object.defineProperty(window, 'location', {
+    Object.defineProperty(window, "location", {
       writable: true,
       value: originalLocation,
-    })
-  })
+    });
+  });
 
-  it('detects OAuth code in URL search params', () => {
-    Object.defineProperty(window, 'location', {
+  it("detects OAuth code in URL search params", () => {
+    Object.defineProperty(window, "location", {
       writable: true,
       value: {
-        href: 'http://localhost:3000/?code=auth-code&state=test',
-        search: '?code=auth-code&state=test',
-        hash: '',
-        pathname: '/',
+        href: "http://localhost:3000/?code=auth-code&state=test",
+        search: "?code=auth-code&state=test",
+        hash: "",
+        pathname: "/",
       },
-    })
+    });
 
-    const params = new URLSearchParams(window.location.search)
-    const code = params.get('code')
+    const params = new URLSearchParams(window.location.search);
+    const code = params.get("code");
 
-    expect(code).toBe('auth-code')
-  })
+    expect(code).toBe("auth-code");
+  });
 
-  it('detects OAuth error in URL search params', async () => {
-    Object.defineProperty(window, 'location', {
+  it("detects OAuth error in URL search params", async () => {
+    Object.defineProperty(window, "location", {
       writable: true,
       value: {
-        href: 'http://localhost:3000/?error=access_denied',
-        search: '?error=access_denied',
-        hash: '',
-        pathname: '/',
+        href: "http://localhost:3000/?error=access_denied",
+        search: "?error=access_denied",
+        hash: "",
+        pathname: "/",
       },
-    })
+    });
 
-    const params = new URLSearchParams(window.location.search)
-    const error = params.get('error')
+    const params = new URLSearchParams(window.location.search);
+    const error = params.get("error");
 
-    expect(error).toBe('access_denied')
-  })
+    expect(error).toBe("access_denied");
+  });
 
-  it('redirects to callback page when OAuth code is present in URL', async () => {
-    const replaceStateMock = vi.fn()
-    Object.defineProperty(window, 'location', {
+  it("redirects to callback page when OAuth code is present in URL", async () => {
+    const replaceStateMock = vi.fn();
+    Object.defineProperty(window, "location", {
       writable: true,
       value: {
-        href: 'http://localhost:3000/?code=auth-code&state=test-state',
-        search: '?code=auth-code&state=test-state',
-        hash: '',
-        pathname: '/',
+        href: "http://localhost:3000/?code=auth-code&state=test-state",
+        search: "?code=auth-code&state=test-state",
+        hash: "",
+        pathname: "/",
       },
-    })
-    Object.defineProperty(window, 'history', {
+    });
+    Object.defineProperty(window, "history", {
       writable: true,
       value: {
         replaceState: replaceStateMock,
       },
-    })
+    });
 
-    render(<TestAppWithOAuthHandler initialRoute="/" />)
+    render(<TestAppWithOAuthHandler initialRoute="/" />);
 
     await waitFor(() => {
-      expect(screen.getByTestId('callback-page')).toBeInTheDocument()
-    })
-  })
+      expect(screen.getByTestId("callback-page")).toBeInTheDocument();
+    });
+  });
 
-  it('logs OAuth error when error is present in URL', async () => {
-    Object.defineProperty(window, 'location', {
+  it("logs OAuth error when error is present in URL", async () => {
+    Object.defineProperty(window, "location", {
       writable: true,
       value: {
-        href: 'http://localhost:3000/?error=access_denied&error_description=User+denied',
-        search: '?error=access_denied&error_description=User+denied',
-        hash: '',
-        pathname: '/',
+        href: "http://localhost:3000/?error=access_denied&error_description=User+denied",
+        search: "?error=access_denied&error_description=User+denied",
+        hash: "",
+        pathname: "/",
       },
-    })
+    });
 
-    render(<TestAppWithOAuthHandler initialRoute="/" />)
+    render(<TestAppWithOAuthHandler initialRoute="/" />);
 
     await waitFor(() => {
-      expect(screen.getByTestId('home-page')).toBeInTheDocument()
-    })
-  })
-})
+      expect(screen.getByTestId("home-page")).toBeInTheDocument();
+    });
+  });
+});

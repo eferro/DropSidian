@@ -1,16 +1,16 @@
 export interface WikilinkMatch {
-  fullMatch: string
-  target: string
-  displayText: string | null
-  startIndex: number
-  endIndex: number
+  fullMatch: string;
+  target: string;
+  displayText: string | null;
+  startIndex: number;
+  endIndex: number;
 }
 
-const WIKILINK_REGEX = /(?<!!)\[\[([^\]|]+)(?:\|([^\]]+))?\]\]/g
+const WIKILINK_REGEX = /(?<!!)\[\[([^\]|]+)(?:\|([^\]]+))?\]\]/g;
 
 export function parseWikilinks(text: string): WikilinkMatch[] {
-  const matches: WikilinkMatch[] = []
-  let match: RegExpExecArray | null
+  const matches: WikilinkMatch[] = [];
+  let match: RegExpExecArray | null;
 
   while ((match = WIKILINK_REGEX.exec(text)) !== null) {
     matches.push({
@@ -19,9 +19,8 @@ export function parseWikilinks(text: string): WikilinkMatch[] {
       displayText: match[2] ?? null,
       startIndex: match.index,
       endIndex: match.index + match[0].length,
-    })
+    });
   }
 
-  return matches
+  return matches;
 }
-

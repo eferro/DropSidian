@@ -1,67 +1,73 @@
-import { describe, it, expect } from 'vitest'
-import { extractImageFromClipboard, generatePastedImageName } from './clipboard-image'
+import { describe, it, expect } from "vitest";
+import {
+  extractImageFromClipboard,
+  generatePastedImageName,
+} from "./clipboard-image";
 
-describe('generatePastedImageName', () => {
-  it('generates a unique filename with timestamp', () => {
-    const mockDate = new Date('2024-03-15T14:30:45.123Z')
-    const result = generatePastedImageName(mockDate)
+describe("generatePastedImageName", () => {
+  it("generates a unique filename with timestamp", () => {
+    const mockDate = new Date("2024-03-15T14:30:45.123Z");
+    const result = generatePastedImageName(mockDate);
 
-    expect(result).toBe('Pasted image 20240315143045.png')
-  })
-})
+    expect(result).toBe("Pasted image 20240315143045.png");
+  });
+});
 
-describe('extractImageFromClipboard', () => {
-  it('returns null when no items in clipboard', () => {
+describe("extractImageFromClipboard", () => {
+  it("returns null when no items in clipboard", () => {
     const clipboardData = {
       items: [] as unknown as DataTransferItemList,
-    } as DataTransfer
+    } as DataTransfer;
 
-    const result = extractImageFromClipboard(clipboardData)
+    const result = extractImageFromClipboard(clipboardData);
 
-    expect(result).toBeNull()
-  })
+    expect(result).toBeNull();
+  });
 
-  it('returns the image file when clipboard contains an image', () => {
-    const mockFile = new File(['image data'], 'test.png', { type: 'image/png' })
+  it("returns the image file when clipboard contains an image", () => {
+    const mockFile = new File(["image data"], "test.png", {
+      type: "image/png",
+    });
     const mockItem = {
-      kind: 'file',
-      type: 'image/png',
+      kind: "file",
+      type: "image/png",
       getAsFile: () => mockFile,
-    }
+    };
     const clipboardData = {
       items: [mockItem],
-    } as unknown as DataTransfer
+    } as unknown as DataTransfer;
 
-    const result = extractImageFromClipboard(clipboardData)
+    const result = extractImageFromClipboard(clipboardData);
 
-    expect(result).toBe(mockFile)
-  })
+    expect(result).toBe(mockFile);
+  });
 
-  it('returns null when clipboard contains only text', () => {
+  it("returns null when clipboard contains only text", () => {
     const mockItem = {
-      kind: 'string',
-      type: 'text/plain',
+      kind: "string",
+      type: "text/plain",
       getAsFile: () => null,
-    }
+    };
     const clipboardData = {
       items: [mockItem],
-    } as unknown as DataTransfer
+    } as unknown as DataTransfer;
 
-    const result = extractImageFromClipboard(clipboardData)
+    const result = extractImageFromClipboard(clipboardData);
 
-    expect(result).toBeNull()
-  })
+    expect(result).toBeNull();
+  });
 
-  it('returns image from files array when items has no image (Linux fallback)', () => {
-    const mockFile = new File(['image data'], 'screenshot.png', { type: 'image/png' })
+  it("returns image from files array when items has no image (Linux fallback)", () => {
+    const mockFile = new File(["image data"], "screenshot.png", {
+      type: "image/png",
+    });
     const clipboardData = {
       items: [] as unknown as DataTransferItemList,
       files: [mockFile] as unknown as FileList,
-    } as DataTransfer
+    } as DataTransfer;
 
-    const result = extractImageFromClipboard(clipboardData)
+    const result = extractImageFromClipboard(clipboardData);
 
-    expect(result).toBe(mockFile)
-  })
-})
-
+    expect(result).toBe(mockFile);
+  });
+});

@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { describe, it, expect, beforeEach, vi } from "vitest";
 import {
   storeOAuthState,
   getStoredOAuthState,
@@ -11,217 +11,216 @@ import {
   exchangeCodeForTokens,
   refreshAccessToken,
   revokeToken,
-} from './dropbox-auth'
+} from "./dropbox-auth";
 
-describe('OAuth state management', () => {
+describe("OAuth state management", () => {
   beforeEach(() => {
-    sessionStorage.clear()
-  })
+    sessionStorage.clear();
+  });
 
-  it('stores and retrieves OAuth state', () => {
-    const state = 'test-state-123'
+  it("stores and retrieves OAuth state", () => {
+    const state = "test-state-123";
 
-    storeOAuthState(state)
-    const retrieved = getStoredOAuthState()
+    storeOAuthState(state);
+    const retrieved = getStoredOAuthState();
 
-    expect(retrieved).toBe(state)
-  })
+    expect(retrieved).toBe(state);
+  });
 
-  it('clears OAuth state', () => {
-    storeOAuthState('state-to-clear')
+  it("clears OAuth state", () => {
+    storeOAuthState("state-to-clear");
 
-    clearOAuthState()
-    const retrieved = getStoredOAuthState()
+    clearOAuthState();
+    const retrieved = getStoredOAuthState();
 
-    expect(retrieved).toBeNull()
-  })
-})
+    expect(retrieved).toBeNull();
+  });
+});
 
-describe('code verifier management', () => {
+describe("code verifier management", () => {
   beforeEach(() => {
-    sessionStorage.clear()
-  })
+    sessionStorage.clear();
+  });
 
-  it('stores and retrieves code verifier', () => {
-    const verifier = 'test-verifier-abc123'
+  it("stores and retrieves code verifier", () => {
+    const verifier = "test-verifier-abc123";
 
-    storeCodeVerifier(verifier)
-    const retrieved = getStoredCodeVerifier()
+    storeCodeVerifier(verifier);
+    const retrieved = getStoredCodeVerifier();
 
-    expect(retrieved).toBe(verifier)
-  })
+    expect(retrieved).toBe(verifier);
+  });
 
-  it('clears code verifier', () => {
-    storeCodeVerifier('verifier-to-clear')
+  it("clears code verifier", () => {
+    storeCodeVerifier("verifier-to-clear");
 
-    clearCodeVerifier()
-    const retrieved = getStoredCodeVerifier()
+    clearCodeVerifier();
+    const retrieved = getStoredCodeVerifier();
 
-    expect(retrieved).toBeNull()
-  })
-})
+    expect(retrieved).toBeNull();
+  });
+});
 
-describe('buildAuthUrl', () => {
+describe("buildAuthUrl", () => {
   beforeEach(() => {
-    sessionStorage.clear()
-  })
+    sessionStorage.clear();
+  });
 
-  it('includes state parameter in URL and stores it', async () => {
-    const url = await buildAuthUrl()
-    const parsedUrl = new URL(url)
-    const stateInUrl = parsedUrl.searchParams.get('state')
-    const storedState = getStoredOAuthState()
+  it("includes state parameter in URL and stores it", async () => {
+    const url = await buildAuthUrl();
+    const parsedUrl = new URL(url);
+    const stateInUrl = parsedUrl.searchParams.get("state");
+    const storedState = getStoredOAuthState();
 
-    expect(stateInUrl).not.toBeNull()
-    expect(stateInUrl).toHaveLength(32)
-    expect(storedState).toBe(stateInUrl)
-  })
-})
+    expect(stateInUrl).not.toBeNull();
+    expect(stateInUrl).toHaveLength(32);
+    expect(storedState).toBe(stateInUrl);
+  });
+});
 
-describe('validateOAuthState', () => {
+describe("validateOAuthState", () => {
   beforeEach(() => {
-    sessionStorage.clear()
-  })
+    sessionStorage.clear();
+  });
 
-  it('returns true when state matches stored state', () => {
-    const state = 'valid-state-123'
-    storeOAuthState(state)
+  it("returns true when state matches stored state", () => {
+    const state = "valid-state-123";
+    storeOAuthState(state);
 
-    const result = validateOAuthState(state)
+    const result = validateOAuthState(state);
 
-    expect(result).toBe(true)
-  })
+    expect(result).toBe(true);
+  });
 
-  it('returns false when state does not match', () => {
-    storeOAuthState('stored-state')
+  it("returns false when state does not match", () => {
+    storeOAuthState("stored-state");
 
-    const result = validateOAuthState('different-state')
+    const result = validateOAuthState("different-state");
 
-    expect(result).toBe(false)
-  })
+    expect(result).toBe(false);
+  });
 
-  it('returns false when no stored state exists', () => {
-    const result = validateOAuthState('some-state')
+  it("returns false when no stored state exists", () => {
+    const result = validateOAuthState("some-state");
 
-    expect(result).toBe(false)
-  })
+    expect(result).toBe(false);
+  });
 
-  it('does not clear stored state after validation', () => {
-    storeOAuthState('state-to-validate')
+  it("does not clear stored state after validation", () => {
+    storeOAuthState("state-to-validate");
 
-    validateOAuthState('state-to-validate')
-    const storedAfter = getStoredOAuthState()
+    validateOAuthState("state-to-validate");
+    const storedAfter = getStoredOAuthState();
 
-    expect(storedAfter).toBe('state-to-validate')
-  })
-})
+    expect(storedAfter).toBe("state-to-validate");
+  });
+});
 
-describe('exchangeCodeForTokens', () => {
+describe("exchangeCodeForTokens", () => {
   beforeEach(() => {
-    sessionStorage.clear()
-    vi.restoreAllMocks()
-  })
+    sessionStorage.clear();
+    vi.restoreAllMocks();
+  });
 
-  it('throws error when no code verifier is stored', async () => {
-    await expect(exchangeCodeForTokens('some-code')).rejects.toThrow(
-      'No code verifier found'
-    )
-  })
+  it("throws error when no code verifier is stored", async () => {
+    await expect(exchangeCodeForTokens("some-code")).rejects.toThrow(
+      "No code verifier found",
+    );
+  });
 
-  it('exchanges code for tokens successfully', async () => {
+  it("exchanges code for tokens successfully", async () => {
     const mockTokenResponse = {
-      access_token: 'test-access-token',
-      refresh_token: 'test-refresh-token',
+      access_token: "test-access-token",
+      refresh_token: "test-refresh-token",
       expires_in: 14400,
-      token_type: 'bearer',
-      account_id: 'dbid:test-account',
-    }
-    vi.spyOn(global, 'fetch').mockResolvedValue(
-      new Response(JSON.stringify(mockTokenResponse), { status: 200 })
-    )
-    storeCodeVerifier('test-verifier')
+      token_type: "bearer",
+      account_id: "dbid:test-account",
+    };
+    vi.spyOn(global, "fetch").mockResolvedValue(
+      new Response(JSON.stringify(mockTokenResponse), { status: 200 }),
+    );
+    storeCodeVerifier("test-verifier");
 
-    const result = await exchangeCodeForTokens('auth-code')
+    const result = await exchangeCodeForTokens("auth-code");
 
-    expect(result).toEqual(mockTokenResponse)
-  })
+    expect(result).toEqual(mockTokenResponse);
+  });
 
-  it('clears code verifier after successful exchange', async () => {
-    vi.spyOn(global, 'fetch').mockResolvedValue(
-      new Response(JSON.stringify({ access_token: 'token' }), { status: 200 })
-    )
-    storeCodeVerifier('verifier-to-clear')
+  it("clears code verifier after successful exchange", async () => {
+    vi.spyOn(global, "fetch").mockResolvedValue(
+      new Response(JSON.stringify({ access_token: "token" }), { status: 200 }),
+    );
+    storeCodeVerifier("verifier-to-clear");
 
-    await exchangeCodeForTokens('auth-code')
+    await exchangeCodeForTokens("auth-code");
 
-    expect(getStoredCodeVerifier()).toBeNull()
-  })
+    expect(getStoredCodeVerifier()).toBeNull();
+  });
 
-  it('throws error when API returns error response', async () => {
-    vi.spyOn(global, 'fetch').mockResolvedValue(
-      new Response('invalid_grant', { status: 400 })
-    )
-    storeCodeVerifier('test-verifier')
+  it("throws error when API returns error response", async () => {
+    vi.spyOn(global, "fetch").mockResolvedValue(
+      new Response("invalid_grant", { status: 400 }),
+    );
+    storeCodeVerifier("test-verifier");
 
-    await expect(exchangeCodeForTokens('bad-code')).rejects.toThrow(
-      'Token exchange failed: invalid_grant'
-    )
-  })
-})
+    await expect(exchangeCodeForTokens("bad-code")).rejects.toThrow(
+      "Token exchange failed: invalid_grant",
+    );
+  });
+});
 
-describe('refreshAccessToken', () => {
+describe("refreshAccessToken", () => {
   beforeEach(() => {
-    vi.restoreAllMocks()
-  })
+    vi.restoreAllMocks();
+  });
 
-  it('refreshes access token successfully', async () => {
+  it("refreshes access token successfully", async () => {
     const mockTokenResponse = {
-      access_token: 'new-access-token',
-      refresh_token: 'new-refresh-token',
+      access_token: "new-access-token",
+      refresh_token: "new-refresh-token",
       expires_in: 14400,
-      token_type: 'bearer',
-      account_id: 'dbid:test-account',
-    }
-    vi.spyOn(global, 'fetch').mockResolvedValue(
-      new Response(JSON.stringify(mockTokenResponse), { status: 200 })
-    )
+      token_type: "bearer",
+      account_id: "dbid:test-account",
+    };
+    vi.spyOn(global, "fetch").mockResolvedValue(
+      new Response(JSON.stringify(mockTokenResponse), { status: 200 }),
+    );
 
-    const result = await refreshAccessToken('old-refresh-token')
+    const result = await refreshAccessToken("old-refresh-token");
 
-    expect(result).toEqual(mockTokenResponse)
-  })
+    expect(result).toEqual(mockTokenResponse);
+  });
 
-  it('throws error when API returns error response', async () => {
-    vi.spyOn(global, 'fetch').mockResolvedValue(
-      new Response('invalid_grant', { status: 400 })
-    )
+  it("throws error when API returns error response", async () => {
+    vi.spyOn(global, "fetch").mockResolvedValue(
+      new Response("invalid_grant", { status: 400 }),
+    );
 
-    await expect(refreshAccessToken('expired-token')).rejects.toThrow(
-      'Token refresh failed: invalid_grant'
-    )
-  })
-})
+    await expect(refreshAccessToken("expired-token")).rejects.toThrow(
+      "Token refresh failed: invalid_grant",
+    );
+  });
+});
 
-describe('revokeToken', () => {
+describe("revokeToken", () => {
   beforeEach(() => {
-    vi.restoreAllMocks()
-  })
+    vi.restoreAllMocks();
+  });
 
-  it('calls Dropbox token revoke endpoint', async () => {
-    const mockFetch = vi.spyOn(global, 'fetch').mockResolvedValue(
-      new Response(null, { status: 200 })
-    )
-    const accessToken = 'test-access-token'
+  it("calls Dropbox token revoke endpoint", async () => {
+    const mockFetch = vi
+      .spyOn(global, "fetch")
+      .mockResolvedValue(new Response(null, { status: 200 }));
+    const accessToken = "test-access-token";
 
-    await revokeToken(accessToken)
+    await revokeToken(accessToken);
 
     expect(mockFetch).toHaveBeenCalledWith(
-      'https://api.dropboxapi.com/2/auth/token/revoke',
+      "https://api.dropboxapi.com/2/auth/token/revoke",
       expect.objectContaining({
-        method: 'POST',
+        method: "POST",
         headers: { Authorization: `Bearer ${accessToken}` },
-      })
-    )
-  })
-})
-
+      }),
+    );
+  });
+});
