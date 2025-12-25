@@ -207,5 +207,24 @@ describe('Home', () => {
       expect(screen.queryByTestId('note-preview')).not.toBeInTheDocument()
     })
   })
+
+  it('handles account fetch error gracefully', async () => {
+    vi.mocked(useAuth).mockReturnValue({
+      accessToken: 'test-token',
+      accountId: 'account-id',
+      isAuthenticated: true,
+      isLoading: false,
+      setTokens: vi.fn(),
+      logout: mockLogout,
+    })
+    vi.mocked(getCurrentAccount).mockRejectedValue(new Error('Network error'))
+
+    render(<Home />)
+
+    await waitFor(() => {
+      expect(getCurrentAccount).toHaveBeenCalledWith('test-token')
+    })
+    expect(screen.getByRole('button', { name: /select vault/i })).toBeInTheDocument()
+  })
 })
 
