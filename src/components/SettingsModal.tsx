@@ -68,6 +68,10 @@ function SettingsModal({
 
   if (!isOpen) return null
 
+  const fullInboxPath = vaultPath && localInboxPath
+    ? `${vaultPath}/${localInboxPath.trim()}`
+    : null
+
   return (
     <div className={styles.overlay}>
       <div className={styles.modal}>
@@ -84,10 +88,10 @@ function SettingsModal({
         </div>
         <div className={styles.content}>
           <div className={styles.section}>
-            <h3 className={styles.sectionTitle}>Vault</h3>
+            <h3 className={styles.sectionTitle}>Vault Path</h3>
             {vaultPath ? (
-              <div className={styles.vaultInfo}>
-                <span className={styles.vaultPath}>{vaultPath}</span>
+              <div className={styles.fieldContainer}>
+                <div className={styles.pathDisplay}>{vaultPath}</div>
                 <button
                   type="button"
                   className={styles.changeButton}
@@ -101,9 +105,8 @@ function SettingsModal({
             )}
           </div>
           <div className={styles.section}>
-            <h3 className={styles.sectionTitle}>Inbox</h3>
-            <label className={styles.inputLabel}>
-              Inbox folder
+            <h3 className={styles.sectionTitle}>Inbox Folder</h3>
+            <div className={styles.fieldContainer}>
               <input
                 type="text"
                 className={styles.input}
@@ -114,8 +117,14 @@ function SettingsModal({
                 }}
                 placeholder="e.g., Inbox or GTD/Inbox"
                 disabled={isValidating}
+                aria-label="Inbox folder path"
               />
-            </label>
+            </div>
+            {fullInboxPath && (
+              <div className={styles.pathPreview}>
+                Full path: <span className={styles.pathPreviewValue}>{fullInboxPath}</span>
+              </div>
+            )}
             {validationError && (
               <p className={styles.errorMessage}>{validationError}</p>
             )}
