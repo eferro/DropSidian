@@ -1,23 +1,57 @@
-import { useState } from 'react'
-import styles from './Header.module.css'
+import { useState } from "react";
+import styles from "./Header.module.css";
+import { ViewMode } from "./ViewModeTabs";
 
 interface User {
-  displayName: string
-  email: string
+  displayName: string;
+  email: string;
 }
 
 interface HeaderProps {
-  user?: User
-  onLogout?: () => void
-  onSettings?: () => void
+  user?: User;
+  onLogout?: () => void;
+  onSettings?: () => void;
+  currentViewMode?: ViewMode;
+  onViewModeChange?: (mode: ViewMode) => void;
 }
 
-function Header({ user, onLogout, onSettings }: HeaderProps) {
-  const [isMenuOpen, setIsMenuOpen] = useState(false)
+function Header({
+  user,
+  onLogout,
+  onSettings,
+  currentViewMode,
+  onViewModeChange,
+}: HeaderProps) {
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   return (
     <header className={styles.header}>
-      <span className={styles.logo}>DropSidian</span>
+      <div className={styles.leftSection}>
+        {currentViewMode !== undefined && onViewModeChange && (
+          <div className={styles.navTabs}>
+            <button
+              type="button"
+              className={`${styles.navTab} ${
+                currentViewMode === "inbox" ? styles.active : ""
+              }`}
+              onClick={() => onViewModeChange("inbox")}
+              aria-pressed={currentViewMode === "inbox"}
+            >
+              Inbox
+            </button>
+            <button
+              type="button"
+              className={`${styles.navTab} ${
+                currentViewMode === "vault" ? styles.active : ""
+              }`}
+              onClick={() => onViewModeChange("vault")}
+              aria-pressed={currentViewMode === "vault"}
+            >
+              Vault
+            </button>
+          </div>
+        )}
+      </div>
       {user && (
         <div className={styles.userMenuContainer}>
           <button
@@ -55,8 +89,7 @@ function Header({ user, onLogout, onSettings }: HeaderProps) {
         </div>
       )}
     </header>
-  )
+  );
 }
 
-export default Header
-
+export default Header;
