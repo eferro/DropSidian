@@ -6,7 +6,7 @@ import Callback from './pages/Callback'
 import NotFound from './pages/NotFound'
 import { debugLog } from './lib/logger'
 
-function OAuthRedirectHandler() {
+export function OAuthRedirectHandler() {
   const [shouldRedirect, setShouldRedirect] = useState(false)
   const [callbackParams, setCallbackParams] = useState('')
 

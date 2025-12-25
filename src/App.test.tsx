@@ -22,11 +22,27 @@ import Home from './pages/Home'
 import Callback from './pages/Callback'
 import NotFound from './pages/NotFound'
 import { AuthProvider } from './context/AuthContext'
+import { OAuthRedirectHandler } from './App'
 
 function TestApp({ initialRoute = '/' }: { initialRoute?: string }) {
   return (
     <AuthProvider>
       <MemoryRouter initialEntries={[initialRoute]}>
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/callback" element={<Callback />} />
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </MemoryRouter>
+    </AuthProvider>
+  )
+}
+
+function TestAppWithOAuthHandler({ initialRoute = '/' }: { initialRoute?: string }) {
+  return (
+    <AuthProvider>
+      <MemoryRouter initialEntries={[initialRoute]}>
+        <OAuthRedirectHandler />
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/callback" element={<Callback />} />
@@ -113,5 +129,48 @@ describe('OAuthRedirectHandler', () => {
     const error = params.get('error')
 
     expect(error).toBe('access_denied')
+  })
+
+  it('redirects to callback page when OAuth code is present in URL', async () => {
+    const replaceStateMock = vi.fn()
+    Object.defineProperty(window, 'location', {
+      writable: true,
+      value: {
+        href: 'http://localhost:3000/?code=auth-code&state=test-state',
+        search: '?code=auth-code&state=test-state',
+        hash: '',
+        pathname: '/',
+      },
+    })
+    Object.defineProperty(window, 'history', {
+      writable: true,
+      value: {
+        replaceState: replaceStateMock,
+      },
+    })
+
+    render(<TestAppWithOAuthHandler initialRoute="/" />)
+
+    await waitFor(() => {
+      expect(screen.getByTestId('callback-page')).toBeInTheDocument()
+    })
+  })
+
+  it('logs OAuth error when error is present in URL', async () => {
+    Object.defineProperty(window, 'location', {
+      writable: true,
+      value: {
+        href: 'http://localhost:3000/?error=access_denied&error_description=User+denied',
+        search: '?error=access_denied&error_description=User+denied',
+        hash: '',
+        pathname: '/',
+      },
+    })
+
+    render(<TestAppWithOAuthHandler initialRoute="/" />)
+
+    await waitFor(() => {
+      expect(screen.getByTestId('home-page')).toBeInTheDocument()
+    })
   })
 })

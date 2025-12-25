@@ -16,6 +16,7 @@ interface NotePreviewProps {
   onNavigateNote?: (path: string) => void
   vaultPath?: string
   onContentLoaded?: (path: string, content: string) => void
+  startInEditMode?: boolean
 }
 
 function removeExtension(filename: string): string {
@@ -29,6 +30,7 @@ function NotePreview({
   onNavigateNote,
   vaultPath,
   onContentLoaded,
+  startInEditMode = false,
 }: NotePreviewProps) {
   const { accessToken } = useAuth()
   const [content, setContent] = useState<string | null>(null)
@@ -37,7 +39,7 @@ function NotePreview({
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
-  const [isEditing, setIsEditing] = useState(false)
+  const [isEditing, setIsEditing] = useState(startInEditMode)
 
   useEffect(() => {
     if (!accessToken || !filePath) {

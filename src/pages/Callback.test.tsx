@@ -112,5 +112,47 @@ describe('Callback', () => {
 
     expect(screen.getByText('Processing authentication...')).toBeInTheDocument()
   })
+
+  it('skips duplicate processing when already exchanging tokens', async () => {
+    renderWithRouter('?code=auth-code&state=valid-state')
+
+    await waitFor(() => {
+      expect(exchangeCodeForTokens).not.toHaveBeenCalled()
+    })
+    expect(screen.getByText('Processing authentication...')).toBeInTheDocument()
+  })
+})
+
+describe('Callback with fresh module state', () => {
+  beforeEach(async () => {
+    vi.clearAllMocks()
+    vi.resetModules()
+  })
+
+  it('stops processing silently when no code verifier is found', async () => {
+    const { validateOAuthState, getStoredCodeVerifier, exchangeCodeForTokens } = await import('../lib/dropbox-auth')
+    vi.mocked(validateOAuthState).mockReturnValue(true)
+    vi.mocked(getStoredCodeVerifier).mockReturnValue(null)
+    vi.mocked(exchangeCodeForTokens).mockResolvedValue({
+      access_token: 'test',
+      refresh_token: 'test',
+      expires_in: 3600,
+      token_type: 'bearer',
+      account_id: 'test',
+    })
+
+    const { default: Callback } = await import('./Callback')
+    const { MemoryRouter } = await import('react-router-dom')
+
+    render(
+      <MemoryRouter initialEntries={['/callback?code=auth-code&state=valid-state']}>
+        <Callback />
+      </MemoryRouter>
+    )
+
+    await waitFor(() => {
+      expect(exchangeCodeForTokens).not.toHaveBeenCalled()
+    })
+  })
 })
 

@@ -5,18 +5,16 @@ import VaultSelector from '../components/VaultSelector'
 import SettingsModal from '../components/SettingsModal'
 import FileList from '../components/FileList'
 import NotePreview from '../components/NotePreview'
-import NewNoteModal from '../components/NewNoteModal'
 import { useAuth } from '../context/AuthContext'
 import { uploadFile, getCurrentAccount, DropboxAccount } from '../lib/dropbox-client'
 import { buildNoteIndex } from '../lib/note-index'
-import { sanitizeFilename } from '../lib/path-utils'
 import { ContentIndex } from '../lib/search'
 
 function Home() {
   const { isAuthenticated, isLoading, logout, accessToken } = useAuth()
   const [vaultPath, setVaultPath] = useState<string | null>(null)
   const [selectedFile, setSelectedFile] = useState<string | null>(null)
-  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [isNewNote, setIsNewNote] = useState(false)
   const [isSettingsOpen, setIsSettingsOpen] = useState(false)
   const [showVaultSelector, setShowVaultSelector] = useState(false)
   const [fileListKey, setFileListKey] = useState(0)
@@ -54,20 +52,28 @@ function Home() {
     })
   }, [])
 
-  const handleCreateNote = useCallback(
-    async (title: string, content: string) => {
-      if (!accessToken || !vaultPath) return
+  const generateNoteName = useCallback(() => {
+    const now = new Date()
+    const year = now.getFullYear()
+    const month = String(now.getMonth() + 1).padStart(2, '0')
+    const day = String(now.getDate()).padStart(2, '0')
+    const hours = String(now.getHours()).padStart(2, '0')
+    const minutes = String(now.getMinutes()).padStart(2, '0')
+    const seconds = String(now.getSeconds()).padStart(2, '0')
+    return `Note ${year}${month}${day}${hours}${minutes}${seconds}`
+  }, [])
 
-      const safeTitle = sanitizeFilename(title) || 'Untitled'
-      const filename = `${safeTitle}.md`
-      const inboxPath = `${vaultPath}/Inbox/${filename}`
+  const handleCreateNote = useCallback(async () => {
+    if (!accessToken || !vaultPath) return
 
-      await uploadFile(accessToken, inboxPath, content)
-      setIsModalOpen(false)
-      setFileListKey((k) => k + 1)
-    },
-    [accessToken, vaultPath]
-  )
+    const noteName = generateNoteName()
+    const inboxPath = `${vaultPath}/Inbox/${noteName}.md`
+
+    await uploadFile(accessToken, inboxPath, '')
+    setIsNewNote(true)
+    setSelectedFile(inboxPath)
+    setFileListKey((k) => k + 1)
+  }, [accessToken, vaultPath, generateNoteName])
 
   const handleOpenSettings = useCallback(() => {
     setIsSettingsOpen(true)
@@ -124,7 +130,7 @@ function Home() {
               />
               <button
                 type="button"
-                onClick={() => setIsModalOpen(true)}
+                onClick={handleCreateNote}
                 aria-label="New note"
                 style={{
                   position: 'fixed',
@@ -144,20 +150,19 @@ function Home() {
           {selectedFile && (
             <NotePreview
               filePath={selectedFile}
-              onClose={() => setSelectedFile(null)}
+              onClose={() => {
+                setSelectedFile(null)
+                setIsNewNote(false)
+              }}
               noteIndex={noteIndex}
               onNavigateNote={handleNavigateNote}
               vaultPath={vaultPath}
               onContentLoaded={handleNoteContentLoaded}
+              startInEditMode={isNewNote}
             />
           )}
         </>
       )}
-      <NewNoteModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        onSubmit={handleCreateNote}
-      />
       <SettingsModal
         isOpen={isSettingsOpen}
         onClose={() => setIsSettingsOpen(false)}
