@@ -32,13 +32,30 @@ function InboxNotesList({ vaultPath, inboxPath, refreshKey }: InboxNotesListProp
     return <div className={styles.empty}>No notes in inbox</div>
   }
 
+  const handleNoteClick = (notePath: string) => {
+    const event = new CustomEvent('inboxFileSelect', { detail: notePath })
+    window.dispatchEvent(event)
+  }
+
   return (
     <div className={styles.container}>
       <div className={styles.grid}>
         {notes.map((note) => {
           const nameWithoutExt = note.name.replace(/\.md$/, '')
           return (
-            <div key={note.id} className={styles.card}>
+            <div
+              key={note.id}
+              className={styles.card}
+              role="button"
+              tabIndex={0}
+              onClick={() => handleNoteClick(note.path_display)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault()
+                  handleNoteClick(note.path_display)
+                }
+              }}
+            >
               <h3 className={styles.cardTitle}>{nameWithoutExt}</h3>
             </div>
           )

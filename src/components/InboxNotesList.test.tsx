@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import InboxNotesList from './InboxNotesList'
 import * as dropboxClient from '../lib/dropbox-client'
 
@@ -92,5 +93,36 @@ describe('InboxNotesList', () => {
     await waitFor(() => {
       expect(listSpy).toHaveBeenCalledTimes(2)
     })
+  })
+
+  it('dispatches custom event when note card is clicked', async () => {
+    vi.spyOn(dropboxClient, 'listInboxNotes').mockResolvedValue([
+      {
+        name: 'Note 1.md',
+        path_display: '/vault/Inbox/Note 1.md',
+        path_lower: '/vault/inbox/note 1.md',
+        id: 'id:1',
+        server_modified: '2024-01-15T10:00:00Z',
+      },
+    ])
+
+    const eventSpy = vi.fn()
+    window.addEventListener('inboxFileSelect', eventSpy)
+    const user = userEvent.setup()
+
+    render(<InboxNotesList vaultPath="/vault" inboxPath="Inbox" />)
+
+    await waitFor(() => {
+      expect(screen.getByText('Note 1')).toBeInTheDocument()
+    })
+
+    const card = screen.getByRole('button', { name: /note 1/i })
+    await user.click(card)
+
+    expect(eventSpy).toHaveBeenCalledTimes(1)
+    const event = eventSpy.mock.calls[0][0] as CustomEvent
+    expect(event.detail).toBe('/vault/Inbox/Note 1.md')
+
+    window.removeEventListener('inboxFileSelect', eventSpy)
   })
 })
