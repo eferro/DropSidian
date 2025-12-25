@@ -6,6 +6,8 @@ import SettingsModal from '../components/SettingsModal'
 import InboxNotesList from '../components/InboxNotesList'
 import NoteComposer from '../components/NoteComposer'
 import NotePreview from '../components/NotePreview'
+import ViewModeTabs, { ViewMode } from '../components/ViewModeTabs'
+import FileList from '../components/FileList'
 import { useAuth } from '../context/AuthContext'
 import { uploadFile, getCurrentAccount, DropboxAccount } from '../lib/dropbox-client'
 import { getInboxPath, storeInboxPath } from '../lib/inbox-storage'
@@ -21,6 +23,7 @@ function Home() {
   const [account, setAccount] = useState<DropboxAccount | null>(null)
   const [inboxPath, setInboxPath] = useState<string>(() => getInboxPath() || 'Inbox')
   const [refreshKey, setRefreshKey] = useState(0)
+  const [viewMode, setViewMode] = useState<ViewMode>('inbox')
 
   useEffect(() => {
     if (!accessToken) return
@@ -79,6 +82,15 @@ function Home() {
     storeInboxPath(path)
   }, [])
 
+  const handleFileSelect = useCallback((path: string) => {
+    setSelectedFile(path)
+  }, [])
+
+  const handleModeChange = useCallback((mode: ViewMode) => {
+    setViewMode(mode)
+    setSelectedFile(null)
+  }, [])
+
   if (isLoading) {
     return (
       <main>
@@ -117,8 +129,16 @@ function Home() {
         <>
           {!selectedFile && (
             <>
-              <NoteComposer onCreateNote={handleCreateNote} />
-              <InboxNotesList vaultPath={vaultPath} inboxPath={inboxPath} refreshKey={refreshKey} />
+              <ViewModeTabs currentMode={viewMode} onModeChange={handleModeChange} />
+              {viewMode === 'inbox' && (
+                <>
+                  <NoteComposer onCreateNote={handleCreateNote} />
+                  <InboxNotesList vaultPath={vaultPath} inboxPath={inboxPath} refreshKey={refreshKey} />
+                </>
+              )}
+              {viewMode === 'vault' && (
+                <FileList vaultPath={vaultPath} onFileSelect={handleFileSelect} />
+              )}
             </>
           )}
           {selectedFile && (

@@ -65,6 +65,19 @@ vi.mock('../components/NotePreview', () => ({
   ),
 }))
 
+vi.mock('../components/ViewModeTabs', () => ({
+  default: ({ currentMode, onModeChange }: { currentMode: string; onModeChange: (mode: string) => void }) => (
+    <div data-testid="view-mode-tabs">
+      <button onClick={() => onModeChange('inbox')} aria-pressed={currentMode === 'inbox'}>
+        Inbox
+      </button>
+      <button onClick={() => onModeChange('vault')} aria-pressed={currentMode === 'vault'}>
+        Vault
+      </button>
+    </div>
+  ),
+}))
+
 import { useAuth } from '../context/AuthContext'
 import { getCurrentAccount } from '../lib/dropbox-client'
 
@@ -218,6 +231,53 @@ describe('Home', () => {
 
     await waitFor(() => {
       expect(screen.getByTestId('note-composer')).toBeInTheDocument()
+    })
+  })
+
+  it('shows tabs to switch between Inbox and Vault modes', async () => {
+    vi.mocked(useAuth).mockReturnValue({
+      accessToken: 'test-token',
+      accountId: 'account-id',
+      isAuthenticated: true,
+      isLoading: false,
+      setTokens: vi.fn(),
+      logout: mockLogout,
+    })
+    const user = userEvent.setup()
+
+    render(<Home />)
+
+    await user.click(screen.getByRole('button', { name: /select vault/i }))
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /inbox/i })).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: /vault/i })).toBeInTheDocument()
+    })
+  })
+
+  it('shows FileList when Vault tab is selected', async () => {
+    vi.mocked(useAuth).mockReturnValue({
+      accessToken: 'test-token',
+      accountId: 'account-id',
+      isAuthenticated: true,
+      isLoading: false,
+      setTokens: vi.fn(),
+      logout: mockLogout,
+    })
+    const user = userEvent.setup()
+
+    render(<Home />)
+
+    await user.click(screen.getByRole('button', { name: /select vault/i }))
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /vault/i })).toBeInTheDocument()
+    })
+
+    await user.click(screen.getByRole('button', { name: /vault/i }))
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /select file/i })).toBeInTheDocument()
     })
   })
 })
