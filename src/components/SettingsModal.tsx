@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import styles from './SettingsModal.module.css'
+import { listFolder } from '../lib/dropbox-client'
 
 interface SettingsModalProps {
   isOpen: boolean
@@ -8,6 +9,7 @@ interface SettingsModalProps {
   onChangeVault?: () => void
   inboxPath?: string
   onInboxPathChange?: (path: string) => void
+  accessToken?: string | null
 }
 
 function SettingsModal({
@@ -17,20 +19,46 @@ function SettingsModal({
   onChangeVault,
   inboxPath,
   onInboxPathChange,
+  accessToken,
 }: SettingsModalProps) {
   const [localInboxPath, setLocalInboxPath] = useState(inboxPath || '')
+  const [validationError, setValidationError] = useState<string | null>(null)
+  const [isValidating, setIsValidating] = useState(false)
 
   useEffect(() => {
     if (isOpen) {
       setLocalInboxPath(inboxPath || '')
+      setValidationError(null)
     }
   }, [isOpen, inboxPath])
 
-  function handleSave(): void {
-    if (localInboxPath.trim()) {
-      onInboxPathChange?.(localInboxPath.trim())
+  async function handleSave(): Promise<void> {
+    const trimmedPath = localInboxPath.trim()
+    if (!trimmedPath) {
+      setValidationError('Inbox folder cannot be empty')
+      return
     }
-    onClose()
+
+    if (accessToken && vaultPath) {
+      setIsValidating(true)
+      setValidationError(null)
+
+      try {
+        const fullPath = `${vaultPath}/${trimmedPath}`
+        await listFolder(accessToken, fullPath)
+        onInboxPathChange?.(trimmedPath)
+        onClose()
+      } catch {
+        setValidationError(
+          `Folder "${trimmedPath}" does not exist in your vault. Please create it in Obsidian first.`
+        )
+      } finally {
+        setIsValidating(false)
+      }
+    } else {
+      onInboxPathChange?.(trimmedPath)
+      onClose()
+    }
   }
 
   function handleCancel(): void {
@@ -80,10 +108,17 @@ function SettingsModal({
                 type="text"
                 className={styles.input}
                 value={localInboxPath}
-                onChange={(e) => setLocalInboxPath(e.target.value)}
+                onChange={(e) => {
+                  setLocalInboxPath(e.target.value)
+                  setValidationError(null)
+                }}
                 placeholder="e.g., Inbox or GTD/Inbox"
+                disabled={isValidating}
               />
             </label>
+            {validationError && (
+              <p className={styles.errorMessage}>{validationError}</p>
+            )}
           </div>
         </div>
         <div className={styles.footer}>
@@ -91,6 +126,7 @@ function SettingsModal({
             type="button"
             className={styles.cancelButton}
             onClick={handleCancel}
+            disabled={isValidating}
           >
             Cancel
           </button>
@@ -98,8 +134,9 @@ function SettingsModal({
             type="button"
             className={styles.saveButton}
             onClick={handleSave}
+            disabled={isValidating}
           >
-            Save
+            {isValidating ? 'Validating...' : 'Save'}
           </button>
         </div>
       </div>

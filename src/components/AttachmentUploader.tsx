@@ -1,17 +1,12 @@
 import { useRef, useState } from 'react'
 import { uploadBinaryFile } from '../lib/dropbox-client'
+import { getParentPath } from '../lib/path-utils'
 import styles from './AttachmentUploader.module.css'
 
 interface AttachmentUploaderProps {
   currentNotePath: string
   accessToken: string
   onUploadComplete: (filename: string) => void
-}
-
-function getParentPath(filePath: string): string {
-  const parts = filePath.split('/')
-  parts.pop()
-  return parts.join('/')
 }
 
 function AttachmentUploader({

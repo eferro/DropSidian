@@ -1,9 +1,14 @@
-import { describe, it, expect, vi } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import SettingsModal from './SettingsModal'
+import * as dropboxClient from '../lib/dropbox-client'
 
 describe('SettingsModal', () => {
+  beforeEach(() => {
+    vi.restoreAllMocks()
+  })
+
   it('renders nothing when closed', () => {
     render(<SettingsModal isOpen={false} onClose={vi.fn()} />)
 
@@ -103,6 +108,72 @@ describe('SettingsModal', () => {
 
     expect(onInboxPathChange).not.toHaveBeenCalled()
     expect(onClose).toHaveBeenCalled()
+  })
+
+  it('validates inbox path exists when Save is clicked', async () => {
+    const onInboxPathChange = vi.fn()
+    vi.spyOn(dropboxClient, 'listFolder').mockResolvedValue({
+      entries: [],
+      cursor: '',
+      has_more: false,
+    })
+
+    render(
+      <SettingsModal
+        isOpen={true}
+        onClose={vi.fn()}
+        vaultPath="/vault"
+        inboxPath="Inbox"
+        onInboxPathChange={onInboxPathChange}
+        accessToken="test-token"
+      />
+    )
+
+    const input = screen.getByLabelText(/inbox folder/i)
+    await userEvent.clear(input)
+    await userEvent.type(input, 'MyInbox')
+
+    await userEvent.click(screen.getByRole('button', { name: /save/i }))
+
+    await waitFor(() => {
+      expect(dropboxClient.listFolder).toHaveBeenCalledWith(
+        'test-token',
+        '/vault/MyInbox'
+      )
+    })
+
+    expect(onInboxPathChange).toHaveBeenCalledWith('MyInbox')
+  })
+
+  it('shows error when inbox path does not exist', async () => {
+    vi.spyOn(dropboxClient, 'listFolder').mockRejectedValue(
+      new Error('path/not_found')
+    )
+
+    render(
+      <SettingsModal
+        isOpen={true}
+        onClose={vi.fn()}
+        vaultPath="/vault"
+        inboxPath="Inbox"
+        onInboxPathChange={vi.fn()}
+        accessToken="test-token"
+      />
+    )
+
+    const input = screen.getByLabelText(/inbox folder/i)
+    await userEvent.clear(input)
+    await userEvent.type(input, 'NonExistent')
+
+    await userEvent.click(screen.getByRole('button', { name: /save/i }))
+
+    await waitFor(() => {
+      expect(
+        screen.getByText(
+          /Folder "NonExistent" does not exist in your vault/i
+        )
+      ).toBeInTheDocument()
+    })
   })
 })
 

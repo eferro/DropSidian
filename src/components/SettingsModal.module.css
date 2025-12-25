@@ -193,3 +193,16 @@
   opacity: 0.9;
 }
 
+.saveButton:disabled,
+.cancelButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.errorMessage {
+  margin: 0.5rem 0 0;
+  color: var(--color-error, #dc2626);
+  font-size: 0.85rem;
+  line-height: 1.4;
+}
+

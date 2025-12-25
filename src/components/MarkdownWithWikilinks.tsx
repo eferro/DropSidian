@@ -3,7 +3,7 @@ import remarkGfm from 'remark-gfm'
 import { NoteIndex, resolveWikilink } from '../lib/note-index'
 import { parseWikilinks } from '../lib/wikilink-parser'
 import { parseEmbeds, isImageEmbed } from '../lib/embed-parser'
-import { sanitizePath, isWithinVault } from '../lib/path-utils'
+import { sanitizePath, isWithinVault, getParentPath } from '../lib/path-utils'
 import WikilinkRenderer from './WikilinkRenderer'
 import ImageEmbed from './ImageEmbed'
 
@@ -31,12 +31,6 @@ interface ParsedItem {
   endIndex: number
   target: string
   displayText?: string | null
-}
-
-function getParentPath(filePath: string): string {
-  const parts = filePath.split('/')
-  parts.pop()
-  return parts.join('/')
 }
 
 function splitContent(

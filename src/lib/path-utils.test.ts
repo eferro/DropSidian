@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { sanitizeFilename, isWithinVault, sanitizePath } from './path-utils'
+import { sanitizeFilename, isWithinVault, sanitizePath, getParentPath, removeExtension } from './path-utils'
 
 describe('sanitizeFilename', () => {
   it('should remove path traversal sequences', () => {
@@ -61,6 +61,42 @@ describe('sanitizePath', () => {
 
   it('should keep leading slash', () => {
     expect(sanitizePath('/vault/notes')).toBe('/vault/notes')
+  })
+})
+
+describe('getParentPath', () => {
+  it('should return parent directory path', () => {
+    expect(getParentPath('/vault/notes/file.md')).toBe('/vault/notes')
+  })
+
+  it('should handle root path', () => {
+    expect(getParentPath('/vault')).toBe('')
+  })
+
+  it('should handle nested paths', () => {
+    expect(getParentPath('/a/b/c/d.md')).toBe('/a/b/c')
+  })
+
+  it('should handle single segment', () => {
+    expect(getParentPath('file.md')).toBe('')
+  })
+})
+
+describe('removeExtension', () => {
+  it('should remove .md extension', () => {
+    expect(removeExtension('note.md')).toBe('note')
+  })
+
+  it('should not affect files without .md extension', () => {
+    expect(removeExtension('note.txt')).toBe('note.txt')
+  })
+
+  it('should handle filenames without extension', () => {
+    expect(removeExtension('note')).toBe('note')
+  })
+
+  it('should only remove .md extension', () => {
+    expect(removeExtension('note.md.backup')).toBe('note.md.backup')
   })
 })
 

@@ -177,6 +177,7 @@ function Home() {
         onChangeVault={handleChangeVault}
         inboxPath={inboxPath}
         onInboxPathChange={handleInboxPathChange}
+        accessToken={accessToken}
       />
     </main>
   )

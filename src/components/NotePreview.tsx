@@ -4,6 +4,7 @@ import remarkGfm from 'remark-gfm'
 import { downloadFileWithMetadata, updateFile } from '../lib/dropbox-client'
 import { useAuth } from '../context/AuthContext'
 import { NoteIndex } from '../lib/note-index'
+import { removeExtension } from '../lib/path-utils'
 import MarkdownWithWikilinks from './MarkdownWithWikilinks'
 import AttachmentUploader from './AttachmentUploader'
 import { usePasteImage } from '../hooks/usePasteImage'
@@ -17,10 +18,6 @@ interface NotePreviewProps {
   vaultPath?: string
   onContentLoaded?: (path: string, content: string) => void
   startInEditMode?: boolean
-}
-
-function removeExtension(filename: string): string {
-  return filename.replace(/\.md$/, '')
 }
 
 function NotePreview({
@@ -88,20 +85,17 @@ function NotePreview({
   }, [accessToken, filePath, editContent, rev])
 
   const handleEdit = () => {
-    console.log('[DropSidian] Entering edit mode')
     setEditContent(content ?? '')
     setIsEditing(true)
   }
 
   const handleCancelEdit = () => {
-    console.log('[DropSidian] Canceling edit mode')
     setEditContent(content ?? '')
     setIsEditing(false)
     setError(null)
   }
 
   const handleImagePasted = useCallback((filename: string) => {
-    console.log('[DropSidian] Image pasted callback:', filename)
     setEditContent((prev) => `${prev}\n![[${filename}]]`)
   }, [])
 
@@ -113,52 +107,11 @@ function NotePreview({
 
   const handlePaste = useCallback(
     (event: React.ClipboardEvent<HTMLTextAreaElement>) => {
-      console.log('[DropSidian] NotePreview paste event received')
-      console.log('[DropSidian] Event target:', event.target)
-      console.log('[DropSidian] clipboardData:', event.clipboardData)
-      console.log('[DropSidian] clipboardData.types:', event.clipboardData?.types)
-
-      if (event.clipboardData?.types) {
-        console.log('[DropSidian] Clipboard types array:', Array.from(event.clipboardData.types))
-      }
-
-      if (event.clipboardData?.items) {
-        console.log('[DropSidian] Items count:', event.clipboardData.items.length)
-        for (let i = 0; i < event.clipboardData.items.length; i++) {
-          const item = event.clipboardData.items[i]
-          console.log(`[DropSidian] Direct item ${i}:`, { kind: item.kind, type: item.type })
-        }
-      }
-
-      if (event.clipboardData?.files) {
-        console.log('[DropSidian] Files count:', event.clipboardData.files.length)
-        for (let i = 0; i < event.clipboardData.files.length; i++) {
-          const file = event.clipboardData.files[i]
-          console.log(`[DropSidian] Direct file ${i}:`, { name: file.name, type: file.type, size: file.size })
-        }
-      }
-
       handlePasteImage(event)
     },
     [handlePasteImage]
   )
 
-  // Log paste events at document level to see if they're captured elsewhere
-  useEffect(() => {
-    const handleDocumentPaste = (event: ClipboardEvent) => {
-      console.log('[DropSidian] Document-level paste event')
-      console.log('[DropSidian] Document paste target:', event.target)
-      console.log('[DropSidian] Document paste types:', event.clipboardData?.types)
-    }
-
-    document.addEventListener('paste', handleDocumentPaste)
-    console.log('[DropSidian] Document paste listener attached')
-
-    return () => {
-      document.removeEventListener('paste', handleDocumentPaste)
-      console.log('[DropSidian] Document paste listener removed')
-    }
-  }, [])
 
   if (loading) {
     return (
@@ -232,17 +185,8 @@ function NotePreview({
             <textarea
               className={styles.editor}
               value={editContent}
-              onChange={(e) => {
-                console.log('[DropSidian] Textarea onChange')
-                setEditContent(e.target.value)
-              }}
+              onChange={(e) => setEditContent(e.target.value)}
               onPaste={handlePaste}
-              onFocus={() => console.log('[DropSidian] Textarea focused')}
-              onKeyDown={(e) => {
-                if (e.ctrlKey && e.key === 'v') {
-                  console.log('[DropSidian] Ctrl+V keydown detected in textarea')
-                }
-              }}
             />
             {uploadingPastedImage && (
               <div className={styles.uploadingOverlay}>

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { listFolder, listAllFiles, DropboxEntry } from '../lib/dropbox-client'
 import { useAuth } from '../context/AuthContext'
 import { combinedSearch, ContentIndex } from '../lib/search'
+import { getParentPath, removeExtension } from '../lib/path-utils'
 import SearchInput from './SearchInput'
 import styles from './FileList.module.css'
 
@@ -22,16 +23,6 @@ function isMarkdownFile(entry: DropboxEntry): boolean {
 
 function isFolder(entry: DropboxEntry): boolean {
   return entry['.tag'] === 'folder' && !isHidden(entry)
-}
-
-function removeExtension(filename: string): string {
-  return filename.replace(/\.md$/, '')
-}
-
-function getParentPath(path: string): string {
-  const parts = path.split('/')
-  parts.pop()
-  return parts.join('/')
 }
 
 function getCurrentFolderName(path: string, vaultPath: string): string {
@@ -68,8 +59,8 @@ function FileList({ vaultPath, onFileSelect, onFilesLoaded, contentIndex }: File
           onFilesLoaded(markdownPaths)
         }
       })
-      .catch((err) => {
-        console.error('Error loading all files:', err)
+      .catch(() => {
+        // Silently fail - error state is handled by component state
       })
   }, [accessToken, vaultPath, onFilesLoaded])
 

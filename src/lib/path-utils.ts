@@ -30,3 +30,13 @@ export function isWithinVault(targetPath: string, vaultRoot: string): boolean {
   return normalizedTarget.startsWith(normalizedRoot)
 }
 
+export function getParentPath(filePath: string): string {
+  const parts = filePath.split('/')
+  parts.pop()
+  return parts.join('/')
+}
+
+export function removeExtension(filename: string): string {
+  return filename.replace(/\.md$/, '')
+}
+

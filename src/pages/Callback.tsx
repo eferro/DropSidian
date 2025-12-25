@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import {
   exchangeCodeForTokens,
@@ -9,22 +9,21 @@ import {
 import { useAuth } from '../context/AuthContext'
 import { debugLog } from '../lib/logger'
 
-let isExchanging = false
-
 function Callback() {
   const [searchParams] = useSearchParams()
   const [error, setError] = useState<string | null>(null)
   const [isProcessing, setIsProcessing] = useState(true)
   const navigate = useNavigate()
   const { setTokens } = useAuth()
+  const isExchangingRef = useRef(false)
 
   useEffect(() => {
     debugLog('Callback - processing', {
-      isExchanging,
+      isExchanging: isExchangingRef.current,
       searchParams: Object.fromEntries(searchParams.entries()),
     })
 
-    if (isExchanging) {
+    if (isExchangingRef.current) {
       debugLog('Callback - already exchanging, skipping')
       return
     }
@@ -64,7 +63,7 @@ function Callback() {
       return
     }
 
-    isExchanging = true
+    isExchangingRef.current = true
     debugLog('Callback - starting token exchange')
 
     exchangeCodeForTokens(code)
@@ -80,7 +79,7 @@ function Callback() {
         setIsProcessing(false)
       })
       .finally(() => {
-        isExchanging = false
+        isExchangingRef.current = false
       })
   }, [searchParams, setTokens, navigate])
 
