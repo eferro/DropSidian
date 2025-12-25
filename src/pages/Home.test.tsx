@@ -35,7 +35,17 @@ vi.mock('../components/FileList', () => ({
 }))
 
 vi.mock('../components/InboxNotesList', () => ({
-  default: () => <div data-testid="inbox-notes-list">Inbox Notes List</div>,
+  default: ({ vaultPath, inboxPath }: { vaultPath: string; inboxPath: string }) => (
+    <div data-testid="inbox-notes-list">
+      Inbox Notes List
+      <button onClick={() => {
+        const event = new CustomEvent('inboxFileSelect', { 
+          detail: `${vaultPath}/${inboxPath}/note.md` 
+        })
+        window.dispatchEvent(event)
+      }}>Select File</button>
+    </div>
+  ),
 }))
 
 vi.mock('../components/NotePreview', () => ({

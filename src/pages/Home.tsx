@@ -27,6 +27,18 @@ function Home() {
       .catch(() => {})
   }, [accessToken])
 
+  useEffect(() => {
+    const handleInboxFileSelect = (event: Event) => {
+      const customEvent = event as CustomEvent<string>
+      setSelectedFile(customEvent.detail)
+    }
+
+    window.addEventListener('inboxFileSelect', handleInboxFileSelect)
+    return () => {
+      window.removeEventListener('inboxFileSelect', handleInboxFileSelect)
+    }
+  }, [])
+
   const handleVaultSelected = useCallback((path: string) => {
     setVaultPath(path)
     setSelectedFile(null)
