@@ -12,12 +12,16 @@ interface FileListProps {
   contentIndex?: ContentIndex
 }
 
+function isHidden(entry: DropboxEntry): boolean {
+  return entry.name.startsWith('.')
+}
+
 function isMarkdownFile(entry: DropboxEntry): boolean {
-  return entry['.tag'] === 'file' && entry.name.endsWith('.md')
+  return entry['.tag'] === 'file' && entry.name.endsWith('.md') && !isHidden(entry)
 }
 
 function isFolder(entry: DropboxEntry): boolean {
-  return entry['.tag'] === 'folder'
+  return entry['.tag'] === 'folder' && !isHidden(entry)
 }
 
 function removeExtension(filename: string): string {

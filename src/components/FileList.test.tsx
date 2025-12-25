@@ -280,4 +280,24 @@ describe('FileList', () => {
       expect(onFilesLoaded).toHaveBeenCalledWith(['/Vault/note.md', '/Vault/another.md'])
     })
   })
+
+  it('hides hidden files and folders (starting with dot)', async () => {
+    vi.mocked(listFolder).mockResolvedValue(
+      mockListFolderResponse([
+        { '.tag': 'file', name: 'visible.md', path_lower: '/visible.md', path_display: '/Vault/visible.md', id: 'id:1' },
+        { '.tag': 'file', name: '.hidden.md', path_lower: '/.hidden.md', path_display: '/Vault/.hidden.md', id: 'id:2' },
+        { '.tag': 'folder', name: 'normal', path_lower: '/normal', path_display: '/Vault/normal', id: 'id:3' },
+        { '.tag': 'folder', name: '.obsidian', path_lower: '/.obsidian', path_display: '/Vault/.obsidian', id: 'id:4' },
+      ])
+    )
+
+    render(<FileList vaultPath="/vault" onFileSelect={mockOnFileSelect} />)
+
+    await waitFor(() => {
+      expect(screen.getByText('visible')).toBeInTheDocument()
+    })
+    expect(screen.getByText('normal')).toBeInTheDocument()
+    expect(screen.queryByText('.hidden')).not.toBeInTheDocument()
+    expect(screen.queryByText('.obsidian')).not.toBeInTheDocument()
+  })
 })
