@@ -35,6 +35,7 @@ describe("MarkdownPreview", () => {
     await waitFor(() => {
       const img = screen.getByRole("img");
       expect(img).toHaveAttribute("src", "https://example.com/test.png");
+      expect(img).toHaveAttribute("alt", "test.png");
       expect(imagePreview.getImagePreviewUrl).toHaveBeenCalledWith(
         "test-token",
         "/vault/inbox",

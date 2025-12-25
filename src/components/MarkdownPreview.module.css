@@ -43,3 +43,11 @@
 .preview em {
   font-style: italic;
 }
+
+.preview img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 4px;
+  margin: 0.5rem 0;
+  display: block;
+}
