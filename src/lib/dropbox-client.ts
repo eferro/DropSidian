@@ -237,6 +237,25 @@ export async function updateFile(
   return response.json()
 }
 
+export async function deleteFile(
+  accessToken: string,
+  path: string
+): Promise<void> {
+  const response = await fetch(
+    'https://api.dropboxapi.com/2/files/delete_v2',
+    {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ path }),
+    }
+  )
+
+  await assertResponseOk(response, 'Failed to delete file')
+}
+
 export async function getTemporaryLink(
   accessToken: string,
   path: string

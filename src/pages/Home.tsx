@@ -153,6 +153,7 @@ function Home() {
               vaultPath={vaultPath}
               onContentLoaded={() => {}}
               startInEditMode={isNewNote}
+              onDelete={() => setRefreshKey((k) => k + 1)}
             />
           )}
         </>

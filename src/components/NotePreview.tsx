@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from 'react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
-import { downloadFileWithMetadata, updateFile } from '../lib/dropbox-client'
+import { downloadFileWithMetadata, updateFile, deleteFile } from '../lib/dropbox-client'
 import { useAuth } from '../context/AuthContext'
 import { NoteIndex } from '../lib/note-index'
 import { removeExtension } from '../lib/path-utils'
@@ -18,6 +18,7 @@ interface NotePreviewProps {
   vaultPath?: string
   onContentLoaded?: (path: string, content: string) => void
   startInEditMode?: boolean
+  onDelete?: () => void
 }
 
 function NotePreview({
@@ -28,6 +29,7 @@ function NotePreview({
   vaultPath,
   onContentLoaded,
   startInEditMode = false,
+  onDelete,
 }: NotePreviewProps) {
   const { accessToken } = useAuth()
   const [content, setContent] = useState<string | null>(null)
@@ -121,6 +123,17 @@ function NotePreview({
     [onClose]
   )
 
+  const handleDelete = useCallback(async () => {
+    const confirmed = window.confirm('Are you sure you want to delete this note? This action cannot be undone.')
+    if (confirmed && accessToken) {
+      await deleteFile(accessToken, filePath)
+      if (onDelete) {
+        onDelete()
+      }
+      onClose()
+    }
+  }, [accessToken, filePath, onClose, onDelete])
+
 
   if (loading) {
     return (
@@ -151,82 +164,89 @@ function NotePreview({
   return (
     <div className={styles.modalBackdrop} onClick={handleBackdropClick}>
       <div className={styles.container}>
-      <div className={styles.header}>
-        <h2 className={styles.title}>{removeExtension(fileName)}</h2>
-        <div className={styles.actions}>
-          <button type="button" className={styles.closeButton} onClick={onClose}>
-            ✕ Close
-          </button>
-          {!isEditing ? (
-            <button type="button" className={styles.editButton} onClick={handleEdit}>
-              ✎ Edit
-            </button>
-          ) : (
+        <div className={styles.contentWrapper}>
+          <div className={styles.header}>
+            <h2 className={styles.title}>{removeExtension(fileName)}</h2>
+            <div className={styles.actions}>
+              <button type="button" className={styles.closeButton} onClick={onClose}>
+                ✕ Close
+              </button>
+              {!isEditing ? (
+                <>
+                  <button type="button" className={styles.deleteButton} onClick={handleDelete}>
+                    🗑 Delete
+                  </button>
+                  <button type="button" className={styles.editButton} onClick={handleEdit}>
+                    ✎ Edit
+                  </button>
+                </>
+              ) : (
+                <>
+                  <button
+                    type="button"
+                    className={styles.cancelButton}
+                    onClick={handleCancelEdit}
+                    disabled={saving}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    className={styles.saveButton}
+                    onClick={handleSave}
+                    disabled={saving}
+                  >
+                    {saving ? 'Saving...' : '✓ Save'}
+                  </button>
+                </>
+              )}
+            </div>
+          </div>
+          {error && <p className={styles.errorMessage}>{error}</p>}
+          {isEditing ? (
             <>
-              <button
-                type="button"
-                className={styles.cancelButton}
-                onClick={handleCancelEdit}
-                disabled={saving}
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                className={styles.saveButton}
-                onClick={handleSave}
-                disabled={saving}
-              >
-                {saving ? 'Saving...' : '✓ Save'}
-              </button>
+              {accessToken && (
+                <AttachmentUploader
+                  currentNotePath={filePath}
+                  accessToken={accessToken}
+                  onUploadComplete={(filename) => {
+                    setEditContent((prev) => `${prev}\n![[${filename}]]`)
+                  }}
+                />
+              )}
+              <div className={styles.editorContainer}>
+                <textarea
+                  className={styles.editor}
+                  value={editContent}
+                  onChange={(e) => setEditContent(e.target.value)}
+                  onPaste={handlePaste}
+                />
+                {uploadingPastedImage && (
+                  <div className={styles.uploadingOverlay}>
+                    Uploading image...
+                  </div>
+                )}
+              </div>
             </>
+          ) : (
+            <article className={styles.article}>
+              {noteIndex && onNavigateNote ? (
+                <MarkdownWithWikilinks
+                  content={content ?? ''}
+                  noteIndex={noteIndex}
+                  onNavigate={onNavigateNote}
+                  accessToken={accessToken ?? undefined}
+                  currentPath={filePath}
+                  vaultPath={vaultPath}
+                />
+              ) : (
+                <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                  {content ?? ''}
+                </ReactMarkdown>
+              )}
+            </article>
           )}
         </div>
-      </div>
-      {error && <p className={styles.errorMessage}>{error}</p>}
-      {isEditing ? (
-        <>
-          {accessToken && (
-            <AttachmentUploader
-              currentNotePath={filePath}
-              accessToken={accessToken}
-              onUploadComplete={(filename) => {
-                setEditContent((prev) => `${prev}\n![[${filename}]]`)
-              }}
-            />
-          )}
-          <div className={styles.editorContainer}>
-            <textarea
-              className={styles.editor}
-              value={editContent}
-              onChange={(e) => setEditContent(e.target.value)}
-              onPaste={handlePaste}
-            />
-            {uploadingPastedImage && (
-              <div className={styles.uploadingOverlay}>
-                Uploading image...
-              </div>
-            )}
-          </div>
-        </>
-      ) : (
-        <article className={styles.article}>
-          {noteIndex && onNavigateNote ? (
-            <MarkdownWithWikilinks
-              content={content ?? ''}
-              noteIndex={noteIndex}
-              onNavigate={onNavigateNote}
-              accessToken={accessToken ?? undefined}
-              currentPath={filePath}
-              vaultPath={vaultPath}
-            />
-          ) : (
-            <ReactMarkdown remarkPlugins={[remarkGfm]}>
-              {content ?? ''}
-            </ReactMarkdown>
-          )}
-        </article>
-      )}
       </div>
     </div>
   )

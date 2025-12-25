@@ -465,3 +465,48 @@ describe('listInboxNotes', () => {
   })
 })
 
+describe('deleteFile', () => {
+  beforeEach(() => {
+    vi.restoreAllMocks()
+  })
+
+  it('deletes file successfully', async () => {
+    const mockResponse = {
+      metadata: {
+        '.tag': 'file',
+        name: 'note.md',
+        path_display: '/Vault/note.md',
+      },
+    }
+    const fetchSpy = vi.spyOn(global, 'fetch').mockResolvedValue(
+      new Response(JSON.stringify(mockResponse), { status: 200 })
+    )
+
+    const { deleteFile } = await import('./dropbox-client')
+    await deleteFile('token', '/Vault/note.md')
+
+    expect(fetchSpy).toHaveBeenCalledWith(
+      'https://api.dropboxapi.com/2/files/delete_v2',
+      expect.objectContaining({
+        method: 'POST',
+        headers: expect.objectContaining({
+          Authorization: 'Bearer token',
+          'Content-Type': 'application/json',
+        }),
+        body: JSON.stringify({ path: '/Vault/note.md' }),
+      })
+    )
+  })
+
+  it('throws error on API failure', async () => {
+    vi.spyOn(global, 'fetch').mockResolvedValue(
+      new Response('Not found', { status: 409 })
+    )
+
+    const { deleteFile } = await import('./dropbox-client')
+    await expect(deleteFile('token', '/Vault/note.md')).rejects.toThrow(
+      'Failed to delete file: Not found'
+    )
+  })
+})
+

@@ -11,6 +11,7 @@ vi.mock('../lib/dropbox-client', () => ({
   downloadFileWithMetadata: vi.fn(),
   updateFile: vi.fn(),
   uploadBinaryFile: vi.fn(),
+  deleteFile: vi.fn(),
 }))
 
 vi.mock('react-markdown', () => ({
@@ -51,7 +52,7 @@ vi.mock('./AttachmentUploader', () => ({
 }))
 
 import { useAuth } from '../context/AuthContext'
-import { downloadFileWithMetadata, updateFile, uploadBinaryFile } from '../lib/dropbox-client'
+import { downloadFileWithMetadata, updateFile, uploadBinaryFile, deleteFile } from '../lib/dropbox-client'
 
 function mockFileResponse(content: string, rev = 'rev-123') {
   return { content, rev, name: 'note.md', path_display: '/vault/note.md' }
@@ -355,6 +356,78 @@ describe('NotePreview', () => {
       await user.click(backdrop)
       expect(mockOnClose).toHaveBeenCalled()
     }
+  })
+
+  it('shows delete button in view mode', async () => {
+    vi.mocked(downloadFileWithMetadata).mockResolvedValue(mockFileResponse('# Content'))
+
+    render(<NotePreview filePath="/vault/note.md" onClose={mockOnClose} />)
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /delete/i })).toBeInTheDocument()
+    })
+  })
+
+  it('shows confirmation dialog when delete button is clicked', async () => {
+    vi.mocked(downloadFileWithMetadata).mockResolvedValue(mockFileResponse('# Content'))
+    const user = userEvent.setup()
+    const mockConfirm = vi.spyOn(window, 'confirm')
+    mockConfirm.mockReturnValue(true)
+
+    render(<NotePreview filePath="/vault/note.md" onClose={mockOnClose} />)
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /delete/i })).toBeInTheDocument()
+    })
+
+    await user.click(screen.getByRole('button', { name: /delete/i }))
+
+    expect(mockConfirm).toHaveBeenCalledWith('Are you sure you want to delete this note? This action cannot be undone.')
+
+    mockConfirm.mockRestore()
+  })
+
+  it('calls deleteFile and closes modal when deletion is confirmed', async () => {
+    vi.mocked(downloadFileWithMetadata).mockResolvedValue(mockFileResponse('# Content'))
+    vi.mocked(deleteFile).mockResolvedValue()
+    const user = userEvent.setup()
+    const mockConfirm = vi.spyOn(window, 'confirm')
+    mockConfirm.mockReturnValue(true)
+
+    render(<NotePreview filePath="/vault/note.md" onClose={mockOnClose} />)
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /delete/i })).toBeInTheDocument()
+    })
+
+    await user.click(screen.getByRole('button', { name: /delete/i }))
+
+    await waitFor(() => {
+      expect(deleteFile).toHaveBeenCalledWith('test-token', '/vault/note.md')
+    })
+    expect(mockOnClose).toHaveBeenCalled()
+
+    mockConfirm.mockRestore()
+  })
+
+  it('does not call deleteFile when deletion is cancelled', async () => {
+    vi.mocked(downloadFileWithMetadata).mockResolvedValue(mockFileResponse('# Content'))
+    const user = userEvent.setup()
+    const mockConfirm = vi.spyOn(window, 'confirm')
+    mockConfirm.mockReturnValue(false)
+
+    render(<NotePreview filePath="/vault/note.md" onClose={mockOnClose} />)
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /delete/i })).toBeInTheDocument()
+    })
+
+    await user.click(screen.getByRole('button', { name: /delete/i }))
+
+    expect(deleteFile).not.toHaveBeenCalled()
+    expect(mockOnClose).not.toHaveBeenCalled()
+
+    mockConfirm.mockRestore()
   })
 })
 
