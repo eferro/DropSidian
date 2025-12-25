@@ -301,6 +301,7 @@ export async function listInboxNotes(
     .filter((entry): entry is DropboxEntry & { server_modified: string } =>
       entry['.tag'] === 'file' &&
       entry.name.endsWith('.md') &&
+      entry.name !== 'README.md' &&
       entry.server_modified !== undefined
     )
     .map((entry): InboxNote => ({

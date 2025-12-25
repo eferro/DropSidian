@@ -430,5 +430,38 @@ describe('listInboxNotes', () => {
 
     expect(result).toHaveLength(0)
   })
+
+  it('filters out README.md from inbox notes', async () => {
+    const mockResponse = {
+      entries: [
+        {
+          '.tag': 'file',
+          name: 'README.md',
+          path_lower: '/vault/inbox/readme.md',
+          path_display: '/Vault/Inbox/README.md',
+          id: 'id:readme',
+          server_modified: '2024-01-01T10:00:00Z',
+        },
+        {
+          '.tag': 'file',
+          name: 'note1.md',
+          path_lower: '/vault/inbox/note1.md',
+          path_display: '/Vault/Inbox/note1.md',
+          id: 'id:1',
+          server_modified: '2024-01-02T10:00:00Z',
+        },
+      ],
+      cursor: '',
+      has_more: false,
+    }
+    vi.spyOn(global, 'fetch').mockResolvedValue(
+      new Response(JSON.stringify(mockResponse), { status: 200 })
+    )
+
+    const result = await listInboxNotes('token', '/Vault', 'Inbox')
+
+    expect(result).toHaveLength(1)
+    expect(result[0].name).toBe('note1.md')
+  })
 })
 
