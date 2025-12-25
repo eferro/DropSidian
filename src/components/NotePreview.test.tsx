@@ -1,150 +1,176 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { render, screen, waitFor, fireEvent } from '@testing-library/react'
-import userEvent from '@testing-library/user-event'
-import NotePreview from './NotePreview'
+import { describe, it, expect, beforeEach, vi } from "vitest";
+import { render, screen, waitFor, fireEvent } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import NotePreview from "./NotePreview";
 
-vi.mock('../context/AuthContext', () => ({
+vi.mock("../context/AuthContext", () => ({
   useAuth: vi.fn(),
-}))
+}));
 
-vi.mock('../lib/dropbox-client', () => ({
+vi.mock("../lib/dropbox-client", () => ({
   downloadFileWithMetadata: vi.fn(),
   updateFile: vi.fn(),
+  uploadFile: vi.fn(),
   uploadBinaryFile: vi.fn(),
   deleteFile: vi.fn(),
-}))
+}));
 
-vi.mock('react-markdown', () => ({
-  default: ({ children }: { children: string }) => <div data-testid="markdown">{children}</div>,
-}))
+vi.mock("react-markdown", () => ({
+  default: ({ children }: { children: string }) => (
+    <div data-testid="markdown">{children}</div>
+  ),
+}));
 
-vi.mock('remark-gfm', () => ({
+vi.mock("remark-gfm", () => ({
   default: {},
-}))
+}));
 
-vi.mock('./MarkdownWithWikilinks', () => ({
+vi.mock("./MarkdownWithWikilinks", () => ({
   default: ({
     content,
     onNavigate,
   }: {
-    content: string
-    onNavigate: (path: string) => void
+    content: string;
+    onNavigate: (path: string) => void;
   }) => (
-    <div data-testid="markdown-wikilinks" onClick={() => onNavigate('/vault/Target.md')}>
+    <div
+      data-testid="markdown-wikilinks"
+      onClick={() => onNavigate("/vault/Target.md")}
+    >
       {content}
     </div>
   ),
-}))
+}));
 
-vi.mock('./AttachmentUploader', () => ({
+vi.mock("./AttachmentUploader", () => ({
   default: ({
     onUploadComplete,
   }: {
-    onUploadComplete: (filename: string) => void
+    onUploadComplete: (filename: string) => void;
   }) => (
     <button
       data-testid="attachment-uploader"
-      onClick={() => onUploadComplete('photo.png')}
+      onClick={() => onUploadComplete("photo.png")}
     >
       Upload
     </button>
   ),
-}))
+}));
 
-import { useAuth } from '../context/AuthContext'
-import { downloadFileWithMetadata, updateFile, uploadBinaryFile, deleteFile } from '../lib/dropbox-client'
+vi.mock("../lib/filename-utils", () => ({
+  generateFilename: vi.fn((title: string, body: string) => {
+    if (title.trim()) return title.trim();
+    const firstLine = body.split("\n")[0]?.trim() || "";
+    return firstLine || "Untitled";
+  }),
+}));
 
-function mockFileResponse(content: string, rev = 'rev-123') {
-  return { content, rev, name: 'note.md', path_display: '/vault/note.md' }
+import { useAuth } from "../context/AuthContext";
+import {
+  downloadFileWithMetadata,
+  updateFile,
+  uploadFile,
+  uploadBinaryFile,
+  deleteFile,
+} from "../lib/dropbox-client";
+
+function mockFileResponse(content: string, rev = "rev-123") {
+  return { content, rev, name: "note.md", path_display: "/vault/note.md" };
 }
 
-describe('NotePreview', () => {
-  const mockOnClose = vi.fn()
+describe("NotePreview", () => {
+  const mockOnClose = vi.fn();
 
   beforeEach(() => {
-    vi.clearAllMocks()
+    vi.clearAllMocks();
     vi.mocked(useAuth).mockReturnValue({
-      accessToken: 'test-token',
+      accessToken: "test-token",
       accountId: null,
       isAuthenticated: true,
       isLoading: false,
       setTokens: vi.fn(),
       logout: vi.fn(),
-    })
-  })
+    });
+  });
 
-  it('shows loading state initially', () => {
-    vi.mocked(downloadFileWithMetadata).mockReturnValue(new Promise(() => {}))
+  it("shows loading state initially", () => {
+    vi.mocked(downloadFileWithMetadata).mockReturnValue(new Promise(() => {}));
 
-    render(<NotePreview filePath="/vault/note.md" onClose={mockOnClose} />)
+    render(<NotePreview filePath="/vault/note.md" onClose={mockOnClose} />);
 
-    expect(screen.getByText('Loading note...')).toBeInTheDocument()
-  })
+    expect(screen.getByText("Loading note...")).toBeInTheDocument();
+  });
 
-  it('shows note content on success', async () => {
+  it("shows note content on success", async () => {
     vi.mocked(downloadFileWithMetadata).mockResolvedValue(
-      mockFileResponse('# Hello World\n\nThis is content.')
-    )
+      mockFileResponse("# Hello World\n\nThis is content."),
+    );
 
-    render(<NotePreview filePath="/vault/note.md" onClose={mockOnClose} />)
-
-    await waitFor(() => {
-      expect(screen.getByText('note')).toBeInTheDocument()
-    })
-    expect(screen.getByTestId('markdown')).toHaveTextContent('# Hello World')
-  })
-
-  it('removes .md extension from title', async () => {
-    vi.mocked(downloadFileWithMetadata).mockResolvedValue(mockFileResponse('content'))
-
-    render(<NotePreview filePath="/vault/my-note.md" onClose={mockOnClose} />)
+    render(<NotePreview filePath="/vault/note.md" onClose={mockOnClose} />);
 
     await waitFor(() => {
-      expect(screen.getByText('my-note')).toBeInTheDocument()
-    })
-  })
+      expect(screen.getByText("note")).toBeInTheDocument();
+    });
+    expect(screen.getByTestId("markdown")).toHaveTextContent("# Hello World");
+  });
 
-  it('shows error on failure', async () => {
-    vi.mocked(downloadFileWithMetadata).mockRejectedValue(new Error('Download failed'))
+  it("removes .md extension from title", async () => {
+    vi.mocked(downloadFileWithMetadata).mockResolvedValue(
+      mockFileResponse("content"),
+    );
 
-    render(<NotePreview filePath="/vault/note.md" onClose={mockOnClose} />)
-
-    await waitFor(() => {
-      expect(screen.getByText('Error: Download failed')).toBeInTheDocument()
-    })
-  })
-
-  it('calls onClose when clicking close button', async () => {
-    vi.mocked(downloadFileWithMetadata).mockResolvedValue(mockFileResponse('content'))
-    const user = userEvent.setup()
-
-    render(<NotePreview filePath="/vault/note.md" onClose={mockOnClose} />)
+    render(<NotePreview filePath="/vault/my-note.md" onClose={mockOnClose} />);
 
     await waitFor(() => {
-      expect(screen.getByText('note')).toBeInTheDocument()
-    })
+      expect(screen.getByText("my-note")).toBeInTheDocument();
+    });
+  });
 
-    await user.click(screen.getByRole('button', { name: /close/i }))
+  it("shows error on failure", async () => {
+    vi.mocked(downloadFileWithMetadata).mockRejectedValue(
+      new Error("Download failed"),
+    );
 
-    expect(mockOnClose).toHaveBeenCalled()
-  })
-
-  it('shows close button on error state', async () => {
-    vi.mocked(downloadFileWithMetadata).mockRejectedValue(new Error('Error'))
-    const user = userEvent.setup()
-
-    render(<NotePreview filePath="/vault/note.md" onClose={mockOnClose} />)
+    render(<NotePreview filePath="/vault/note.md" onClose={mockOnClose} />);
 
     await waitFor(() => {
-      expect(screen.getByText(/Error:/)).toBeInTheDocument()
-    })
+      expect(screen.getByText("Error: Download failed")).toBeInTheDocument();
+    });
+  });
 
-    await user.click(screen.getByRole('button', { name: /close/i }))
+  it("calls onClose when clicking close button", async () => {
+    vi.mocked(downloadFileWithMetadata).mockResolvedValue(
+      mockFileResponse("content"),
+    );
+    const user = userEvent.setup();
 
-    expect(mockOnClose).toHaveBeenCalled()
-  })
+    render(<NotePreview filePath="/vault/note.md" onClose={mockOnClose} />);
 
-  it('does not load when no access token', async () => {
+    await waitFor(() => {
+      expect(screen.getByText("note")).toBeInTheDocument();
+    });
+
+    await user.click(screen.getByRole("button", { name: /close/i }));
+
+    expect(mockOnClose).toHaveBeenCalled();
+  });
+
+  it("shows close button on error state", async () => {
+    vi.mocked(downloadFileWithMetadata).mockRejectedValue(new Error("Error"));
+    const user = userEvent.setup();
+
+    render(<NotePreview filePath="/vault/note.md" onClose={mockOnClose} />);
+
+    await waitFor(() => {
+      expect(screen.getByText(/Error:/)).toBeInTheDocument();
+    });
+
+    await user.click(screen.getByRole("button", { name: /close/i }));
+
+    expect(mockOnClose).toHaveBeenCalled();
+  });
+
+  it("does not load when no access token", async () => {
     vi.mocked(useAuth).mockReturnValue({
       accessToken: null,
       accountId: null,
@@ -152,282 +178,357 @@ describe('NotePreview', () => {
       isLoading: false,
       setTokens: vi.fn(),
       logout: vi.fn(),
-    })
+    });
 
-    render(<NotePreview filePath="/vault/note.md" onClose={mockOnClose} />)
-
-    await waitFor(() => {
-      expect(screen.queryByText('Loading note...')).not.toBeInTheDocument()
-    })
-    expect(downloadFileWithMetadata).not.toHaveBeenCalled()
-  })
-
-  it('shows edit button and switches to edit mode', async () => {
-    vi.mocked(downloadFileWithMetadata).mockResolvedValue(mockFileResponse('# Content'))
-    const user = userEvent.setup()
-
-    render(<NotePreview filePath="/vault/note.md" onClose={mockOnClose} />)
+    render(<NotePreview filePath="/vault/note.md" onClose={mockOnClose} />);
 
     await waitFor(() => {
-      expect(screen.getByRole('button', { name: /edit/i })).toBeInTheDocument()
-    })
+      expect(screen.queryByText("Loading note...")).not.toBeInTheDocument();
+    });
+    expect(downloadFileWithMetadata).not.toHaveBeenCalled();
+  });
 
-    await user.click(screen.getByRole('button', { name: /edit/i }))
-
-    expect(screen.getByRole('textbox')).toHaveValue('# Content')
-    expect(screen.getByRole('button', { name: /save/i })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /cancel/i })).toBeInTheDocument()
-  })
-
-  it('saves changes and returns to view mode', async () => {
-    vi.mocked(downloadFileWithMetadata).mockResolvedValue(mockFileResponse('# Old', 'rev-1'))
-    vi.mocked(updateFile).mockResolvedValue({
-      name: 'note.md',
-      path_display: '/vault/note.md',
-      rev: 'rev-2',
-    })
-    const user = userEvent.setup()
-
-    render(<NotePreview filePath="/vault/note.md" onClose={mockOnClose} />)
-
-    await waitFor(() => {
-      expect(screen.getByRole('button', { name: /edit/i })).toBeInTheDocument()
-    })
-
-    await user.click(screen.getByRole('button', { name: /edit/i }))
-    await user.clear(screen.getByRole('textbox'))
-    await user.type(screen.getByRole('textbox'), '# New')
-    await user.click(screen.getByRole('button', { name: /save/i }))
-
-    await waitFor(() => {
-      expect(screen.queryByRole('textbox')).not.toBeInTheDocument()
-    })
-    expect(updateFile).toHaveBeenCalledWith('test-token', '/vault/note.md', '# New', 'rev-1')
-  })
-
-  it('shows conflict error when save fails with 409', async () => {
-    vi.mocked(downloadFileWithMetadata).mockResolvedValue(mockFileResponse('content', 'rev-1'))
-    vi.mocked(updateFile).mockRejectedValue(new Error('Conflict: file was modified'))
-    const user = userEvent.setup()
-
-    render(<NotePreview filePath="/vault/note.md" onClose={mockOnClose} />)
-
-    await waitFor(() => {
-      expect(screen.getByRole('button', { name: /edit/i })).toBeInTheDocument()
-    })
-
-    await user.click(screen.getByRole('button', { name: /edit/i }))
-    await user.click(screen.getByRole('button', { name: /save/i }))
-
-    await waitFor(() => {
-      expect(screen.getByText(/Conflict/)).toBeInTheDocument()
-    })
-  })
-
-  it('calls onNavigateNote when wikilink is clicked', async () => {
+  it("shows edit button and switches to edit mode", async () => {
     vi.mocked(downloadFileWithMetadata).mockResolvedValue(
-      mockFileResponse('See [[Target]] here.')
-    )
-    const onNavigateNote = vi.fn()
-    const user = userEvent.setup()
+      mockFileResponse("# Content"),
+    );
+    const user = userEvent.setup();
+
+    render(<NotePreview filePath="/vault/note.md" onClose={mockOnClose} />);
+
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: /edit/i })).toBeInTheDocument();
+    });
+
+    await user.click(screen.getByRole("button", { name: /edit/i }));
+
+    expect(screen.getByRole("textbox")).toHaveValue("# Content");
+    expect(screen.getByRole("button", { name: /save/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /cancel/i })).toBeInTheDocument();
+  });
+
+  it("saves changes and returns to view mode", async () => {
+    vi.mocked(downloadFileWithMetadata).mockResolvedValue(
+      mockFileResponse("# Old", "rev-1"),
+    );
+    vi.mocked(updateFile).mockResolvedValue({
+      name: "note.md",
+      path_display: "/vault/note.md",
+      rev: "rev-2",
+    });
+    const user = userEvent.setup();
+
+    render(<NotePreview filePath="/vault/note.md" onClose={mockOnClose} />);
+
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: /edit/i })).toBeInTheDocument();
+    });
+
+    await user.click(screen.getByRole("button", { name: /edit/i }));
+    await user.clear(screen.getByRole("textbox"));
+    await user.type(screen.getByRole("textbox"), "# New");
+    await user.click(screen.getByRole("button", { name: /save/i }));
+
+    await waitFor(() => {
+      expect(screen.queryByRole("textbox")).not.toBeInTheDocument();
+    });
+    expect(updateFile).toHaveBeenCalledWith(
+      "test-token",
+      "/vault/note.md",
+      "# New",
+      "rev-1",
+    );
+  });
+
+  it("shows conflict error when save fails with 409", async () => {
+    vi.mocked(downloadFileWithMetadata).mockResolvedValue(
+      mockFileResponse("content", "rev-1"),
+    );
+    vi.mocked(updateFile).mockRejectedValue(
+      new Error("Conflict: file was modified"),
+    );
+    const user = userEvent.setup();
+
+    render(<NotePreview filePath="/vault/note.md" onClose={mockOnClose} />);
+
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: /edit/i })).toBeInTheDocument();
+    });
+
+    await user.click(screen.getByRole("button", { name: /edit/i }));
+    await user.click(screen.getByRole("button", { name: /save/i }));
+
+    await waitFor(() => {
+      expect(screen.getByText(/Conflict/)).toBeInTheDocument();
+    });
+  });
+
+  it("calls onNavigateNote when wikilink is clicked", async () => {
+    vi.mocked(downloadFileWithMetadata).mockResolvedValue(
+      mockFileResponse("See [[Target]] here."),
+    );
+    const onNavigateNote = vi.fn();
+    const user = userEvent.setup();
 
     render(
       <NotePreview
         filePath="/vault/note.md"
         onClose={mockOnClose}
-        noteIndex={new Map([['Target', '/vault/Target.md']])}
+        noteIndex={new Map([["Target", "/vault/Target.md"]])}
         onNavigateNote={onNavigateNote}
-      />
-    )
+      />,
+    );
 
     await waitFor(() => {
-      expect(screen.getByTestId('markdown-wikilinks')).toBeInTheDocument()
-    })
+      expect(screen.getByTestId("markdown-wikilinks")).toBeInTheDocument();
+    });
 
-    await user.click(screen.getByTestId('markdown-wikilinks'))
+    await user.click(screen.getByTestId("markdown-wikilinks"));
 
-    expect(onNavigateNote).toHaveBeenCalledWith('/vault/Target.md')
-  })
+    expect(onNavigateNote).toHaveBeenCalledWith("/vault/Target.md");
+  });
 
-  it('shows attachment uploader in edit mode', async () => {
-    vi.mocked(downloadFileWithMetadata).mockResolvedValue(mockFileResponse('# Test'))
-    const user = userEvent.setup()
+  it("shows attachment uploader in edit mode", async () => {
+    vi.mocked(downloadFileWithMetadata).mockResolvedValue(
+      mockFileResponse("# Test"),
+    );
+    const user = userEvent.setup();
 
-    render(<NotePreview filePath="/vault/note.md" onClose={mockOnClose} />)
-
-    await waitFor(() => {
-      expect(screen.getByRole('button', { name: /edit/i })).toBeInTheDocument()
-    })
-
-    await user.click(screen.getByRole('button', { name: /edit/i }))
-
-    expect(screen.getByTestId('attachment-uploader')).toBeInTheDocument()
-  })
-
-  it('inserts embed syntax when attachment is uploaded', async () => {
-    vi.mocked(downloadFileWithMetadata).mockResolvedValue(mockFileResponse('# Test'))
-    vi.mocked(updateFile).mockResolvedValue({ name: 'note.md', path_display: '/vault/note.md', rev: 'rev-2' })
-    const user = userEvent.setup()
-
-    render(<NotePreview filePath="/vault/note.md" onClose={mockOnClose} />)
+    render(<NotePreview filePath="/vault/note.md" onClose={mockOnClose} />);
 
     await waitFor(() => {
-      expect(screen.getByRole('button', { name: /edit/i })).toBeInTheDocument()
-    })
+      expect(screen.getByRole("button", { name: /edit/i })).toBeInTheDocument();
+    });
 
-    await user.click(screen.getByRole('button', { name: /edit/i }))
-    await user.click(screen.getByTestId('attachment-uploader'))
+    await user.click(screen.getByRole("button", { name: /edit/i }));
 
-    const textarea = screen.getByRole('textbox') as HTMLTextAreaElement
-    expect(textarea.value).toContain('![[photo.png]]')
-  })
+    expect(screen.getByTestId("attachment-uploader")).toBeInTheDocument();
+  });
 
-  it('uploads pasted image and inserts embed syntax', async () => {
-    vi.mocked(downloadFileWithMetadata).mockResolvedValue(mockFileResponse('# Test'))
+  it("inserts embed syntax when attachment is uploaded", async () => {
+    vi.mocked(downloadFileWithMetadata).mockResolvedValue(
+      mockFileResponse("# Test"),
+    );
+    vi.mocked(updateFile).mockResolvedValue({
+      name: "note.md",
+      path_display: "/vault/note.md",
+      rev: "rev-2",
+    });
+    const user = userEvent.setup();
+
+    render(<NotePreview filePath="/vault/note.md" onClose={mockOnClose} />);
+
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: /edit/i })).toBeInTheDocument();
+    });
+
+    await user.click(screen.getByRole("button", { name: /edit/i }));
+    await user.click(screen.getByTestId("attachment-uploader"));
+
+    const textarea = screen.getByRole("textbox") as HTMLTextAreaElement;
+    expect(textarea.value).toContain("![[photo.png]]");
+  });
+
+  it("uploads pasted image and inserts embed syntax", async () => {
+    vi.mocked(downloadFileWithMetadata).mockResolvedValue(
+      mockFileResponse("# Test"),
+    );
     vi.mocked(uploadBinaryFile).mockResolvedValue({
-      name: 'Pasted image 20240315143045.png',
-      path_lower: '/vault/pasted image 20240315143045.png',
-      path_display: '/vault/Pasted image 20240315143045.png',
-      id: 'id:123',
-    })
-    const user = userEvent.setup()
+      name: "Pasted image 20240315143045.png",
+      path_lower: "/vault/pasted image 20240315143045.png",
+      path_display: "/vault/Pasted image 20240315143045.png",
+      id: "id:123",
+    });
+    const user = userEvent.setup();
 
-    render(<NotePreview filePath="/vault/note.md" onClose={mockOnClose} />)
+    render(<NotePreview filePath="/vault/note.md" onClose={mockOnClose} />);
 
     await waitFor(() => {
-      expect(screen.getByRole('button', { name: /edit/i })).toBeInTheDocument()
-    })
+      expect(screen.getByRole("button", { name: /edit/i })).toBeInTheDocument();
+    });
 
-    await user.click(screen.getByRole('button', { name: /edit/i }))
+    await user.click(screen.getByRole("button", { name: /edit/i }));
 
-    const textarea = screen.getByRole('textbox')
-    const mockFile = new File(['image data'], 'screenshot.png', { type: 'image/png' })
+    const textarea = screen.getByRole("textbox");
+    const mockFile = new File(["image data"], "screenshot.png", {
+      type: "image/png",
+    });
     const mockItem = {
-      kind: 'file',
-      type: 'image/png',
+      kind: "file",
+      type: "image/png",
       getAsFile: () => mockFile,
-    }
+    };
 
     fireEvent.paste(textarea, {
       clipboardData: {
         items: [mockItem],
       },
-    })
+    });
 
     await waitFor(() => {
       expect(uploadBinaryFile).toHaveBeenCalledWith(
-        'test-token',
+        "test-token",
         expect.stringMatching(/^\/vault\/Pasted image \d{14}\.png$/),
-        mockFile
-      )
-    })
+        mockFile,
+      );
+    });
 
     await waitFor(() => {
-      const ta = screen.getByRole('textbox') as HTMLTextAreaElement
-      expect(ta.value).toMatch(/!\[\[Pasted image \d{14}\.png\]\]/)
-    })
-  })
+      const ta = screen.getByRole("textbox") as HTMLTextAreaElement;
+      expect(ta.value).toMatch(/!\[\[Pasted image \d{14}\.png\]\]/);
+    });
+  });
 
-  it('renders with modal backdrop', async () => {
-    vi.mocked(downloadFileWithMetadata).mockResolvedValue(mockFileResponse('# Test'))
+  it("renders with modal backdrop", async () => {
+    vi.mocked(downloadFileWithMetadata).mockResolvedValue(
+      mockFileResponse("# Test"),
+    );
 
-    const { container } = render(<NotePreview filePath="/vault/note.md" onClose={mockOnClose} />)
-
-    await waitFor(() => {
-      expect(screen.getByText('note')).toBeInTheDocument()
-    })
-
-    const backdrop = container.querySelector('[class*="modalBackdrop"]')
-    expect(backdrop).toBeInTheDocument()
-  })
-
-  it('closes modal when clicking backdrop', async () => {
-    vi.mocked(downloadFileWithMetadata).mockResolvedValue(mockFileResponse('# Test'))
-    const user = userEvent.setup()
-
-    const { container } = render(<NotePreview filePath="/vault/note.md" onClose={mockOnClose} />)
+    const { container } = render(
+      <NotePreview filePath="/vault/note.md" onClose={mockOnClose} />,
+    );
 
     await waitFor(() => {
-      expect(screen.getByText('note')).toBeInTheDocument()
-    })
+      expect(screen.getByText("note")).toBeInTheDocument();
+    });
 
-    const backdrop = container.querySelector('[class*="modalBackdrop"]')
+    const backdrop = container.querySelector('[class*="modalBackdrop"]');
+    expect(backdrop).toBeInTheDocument();
+  });
+
+  it("closes modal when clicking backdrop", async () => {
+    vi.mocked(downloadFileWithMetadata).mockResolvedValue(
+      mockFileResponse("# Test"),
+    );
+    const user = userEvent.setup();
+
+    const { container } = render(
+      <NotePreview filePath="/vault/note.md" onClose={mockOnClose} />,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText("note")).toBeInTheDocument();
+    });
+
+    const backdrop = container.querySelector('[class*="modalBackdrop"]');
     if (backdrop) {
-      await user.click(backdrop)
-      expect(mockOnClose).toHaveBeenCalled()
+      await user.click(backdrop);
+      expect(mockOnClose).toHaveBeenCalled();
     }
-  })
+  });
 
-  it('shows delete button in view mode', async () => {
-    vi.mocked(downloadFileWithMetadata).mockResolvedValue(mockFileResponse('# Content'))
+  it("shows delete button in view mode", async () => {
+    vi.mocked(downloadFileWithMetadata).mockResolvedValue(
+      mockFileResponse("# Content"),
+    );
 
-    render(<NotePreview filePath="/vault/note.md" onClose={mockOnClose} />)
-
-    await waitFor(() => {
-      expect(screen.getByRole('button', { name: /delete/i })).toBeInTheDocument()
-    })
-  })
-
-  it('shows confirmation dialog when delete button is clicked', async () => {
-    vi.mocked(downloadFileWithMetadata).mockResolvedValue(mockFileResponse('# Content'))
-    const user = userEvent.setup()
-    const mockConfirm = vi.spyOn(window, 'confirm')
-    mockConfirm.mockReturnValue(true)
-
-    render(<NotePreview filePath="/vault/note.md" onClose={mockOnClose} />)
+    render(<NotePreview filePath="/vault/note.md" onClose={mockOnClose} />);
 
     await waitFor(() => {
-      expect(screen.getByRole('button', { name: /delete/i })).toBeInTheDocument()
-    })
+      expect(
+        screen.getByRole("button", { name: /delete/i }),
+      ).toBeInTheDocument();
+    });
+  });
 
-    await user.click(screen.getByRole('button', { name: /delete/i }))
+  it("shows confirmation dialog when delete button is clicked", async () => {
+    vi.mocked(downloadFileWithMetadata).mockResolvedValue(
+      mockFileResponse("# Content"),
+    );
+    const user = userEvent.setup();
+    const mockConfirm = vi.spyOn(window, "confirm");
+    mockConfirm.mockReturnValue(true);
 
-    expect(mockConfirm).toHaveBeenCalledWith('Are you sure you want to delete this note? This action cannot be undone.')
-
-    mockConfirm.mockRestore()
-  })
-
-  it('calls deleteFile and closes modal when deletion is confirmed', async () => {
-    vi.mocked(downloadFileWithMetadata).mockResolvedValue(mockFileResponse('# Content'))
-    vi.mocked(deleteFile).mockResolvedValue()
-    const user = userEvent.setup()
-    const mockConfirm = vi.spyOn(window, 'confirm')
-    mockConfirm.mockReturnValue(true)
-
-    render(<NotePreview filePath="/vault/note.md" onClose={mockOnClose} />)
+    render(<NotePreview filePath="/vault/note.md" onClose={mockOnClose} />);
 
     await waitFor(() => {
-      expect(screen.getByRole('button', { name: /delete/i })).toBeInTheDocument()
-    })
+      expect(
+        screen.getByRole("button", { name: /delete/i }),
+      ).toBeInTheDocument();
+    });
 
-    await user.click(screen.getByRole('button', { name: /delete/i }))
+    await user.click(screen.getByRole("button", { name: /delete/i }));
+
+    expect(mockConfirm).toHaveBeenCalledWith(
+      "Are you sure you want to delete this note? This action cannot be undone.",
+    );
+
+    mockConfirm.mockRestore();
+  });
+
+  it("calls deleteFile and closes modal when deletion is confirmed", async () => {
+    vi.mocked(downloadFileWithMetadata).mockResolvedValue(
+      mockFileResponse("# Content"),
+    );
+    vi.mocked(deleteFile).mockResolvedValue();
+    const user = userEvent.setup();
+    const mockConfirm = vi.spyOn(window, "confirm");
+    mockConfirm.mockReturnValue(true);
+
+    render(<NotePreview filePath="/vault/note.md" onClose={mockOnClose} />);
 
     await waitFor(() => {
-      expect(deleteFile).toHaveBeenCalledWith('test-token', '/vault/note.md')
-    })
-    expect(mockOnClose).toHaveBeenCalled()
+      expect(
+        screen.getByRole("button", { name: /delete/i }),
+      ).toBeInTheDocument();
+    });
 
-    mockConfirm.mockRestore()
-  })
-
-  it('does not call deleteFile when deletion is cancelled', async () => {
-    vi.mocked(downloadFileWithMetadata).mockResolvedValue(mockFileResponse('# Content'))
-    const user = userEvent.setup()
-    const mockConfirm = vi.spyOn(window, 'confirm')
-    mockConfirm.mockReturnValue(false)
-
-    render(<NotePreview filePath="/vault/note.md" onClose={mockOnClose} />)
+    await user.click(screen.getByRole("button", { name: /delete/i }));
 
     await waitFor(() => {
-      expect(screen.getByRole('button', { name: /delete/i })).toBeInTheDocument()
-    })
+      expect(deleteFile).toHaveBeenCalledWith("test-token", "/vault/note.md");
+    });
+    expect(mockOnClose).toHaveBeenCalled();
 
-    await user.click(screen.getByRole('button', { name: /delete/i }))
+    mockConfirm.mockRestore();
+  });
 
-    expect(deleteFile).not.toHaveBeenCalled()
-    expect(mockOnClose).not.toHaveBeenCalled()
+  it("does not call deleteFile when deletion is cancelled", async () => {
+    vi.mocked(downloadFileWithMetadata).mockResolvedValue(
+      mockFileResponse("# Content"),
+    );
+    const user = userEvent.setup();
+    const mockConfirm = vi.spyOn(window, "confirm");
+    mockConfirm.mockReturnValue(false);
 
-    mockConfirm.mockRestore()
-  })
-})
+    render(<NotePreview filePath="/vault/note.md" onClose={mockOnClose} />);
 
+    await waitFor(() => {
+      expect(
+        screen.getByRole("button", { name: /delete/i }),
+      ).toBeInTheDocument();
+    });
+
+    await user.click(screen.getByRole("button", { name: /delete/i }));
+
+    expect(deleteFile).not.toHaveBeenCalled();
+    expect(mockOnClose).not.toHaveBeenCalled();
+
+    mockConfirm.mockRestore();
+  });
+
+  it("starts in edit mode when creating a new note", () => {
+    vi.mocked(uploadFile).mockResolvedValue({
+      name: "New Note.md",
+      path_display: "/vault/Inbox/New Note.md",
+      path_lower: "/vault/inbox/new note.md",
+      id: "id:123",
+    });
+
+    render(
+      <NotePreview
+        filePath={null}
+        onClose={mockOnClose}
+        vaultPath="/vault"
+        inboxPath="Inbox"
+        onCreateNote={() => {}}
+      />,
+    );
+
+    expect(screen.getByRole("textbox")).toBeInTheDocument();
+    expect(screen.getByTestId("attachment-uploader")).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: /edit/i }),
+    ).not.toBeInTheDocument();
+  });
+});

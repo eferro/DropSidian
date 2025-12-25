@@ -1,0 +1,45 @@
+.preview {
+  overflow: hidden;
+  position: relative;
+}
+
+.preview h1,
+.preview h2,
+.preview h3 {
+  font-size: 0.9rem;
+  margin: 0.5rem 0;
+  color: var(--color-text);
+  font-weight: 500;
+}
+
+.preview p {
+  font-size: 0.85rem;
+  line-height: 1.4;
+  margin: 0.25rem 0;
+  color: var(--color-text-muted);
+}
+
+.preview ul,
+.preview ol {
+  font-size: 0.85rem;
+  margin: 0.25rem 0;
+  padding-left: 1.5rem;
+  color: var(--color-text-muted);
+}
+
+.preview code {
+  font-size: 0.8rem;
+  background: var(--color-bg);
+  padding: 0.1rem 0.3rem;
+  border-radius: 3px;
+  font-family: monospace;
+}
+
+.preview strong {
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.preview em {
+  font-style: italic;
+}
