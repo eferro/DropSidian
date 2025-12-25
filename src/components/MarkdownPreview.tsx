@@ -7,6 +7,11 @@ import {
 } from "../lib/image-preview";
 import { useLazyLoad } from "../hooks/useLazyLoad";
 import PreviewSkeleton from "./PreviewSkeleton";
+import {
+  getCachedContent,
+  setCachedContent,
+  generateCacheKey,
+} from "../lib/content-cache";
 
 interface MarkdownPreviewProps {
   content: string;
@@ -44,6 +49,15 @@ function MarkdownPreview({
         return;
       }
 
+      const cacheKey = generateCacheKey(content, vaultPath, notePath);
+      const cached = getCachedContent(cacheKey);
+
+      if (cached) {
+        setProcessedContent(cached);
+        setIsLoading(false);
+        return;
+      }
+
       const imageRefs = extractImageReferences(content);
       if (imageRefs.length > 0) {
         setIsLoading(true);
@@ -72,6 +86,7 @@ function MarkdownPreview({
       }
 
       setProcessedContent(processed);
+      setCachedContent(cacheKey, processed);
       setIsLoading(false);
     }
 
