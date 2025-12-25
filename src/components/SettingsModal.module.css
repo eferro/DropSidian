@@ -138,7 +138,7 @@
 
 .input:focus {
   outline: none;
-  border-color: var(--color-primary);
+  border-color: var(--color-accent);
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
@@ -175,13 +175,14 @@
 }
 
 .saveButton {
-  background: var(--color-primary);
+  background: var(--color-accent);
   color: white;
-  border-color: var(--color-primary);
+  border-color: var(--color-accent);
 }
 
 .saveButton:hover {
-  opacity: 0.9;
+  background: var(--color-accent-hover);
+  border-color: var(--color-accent-hover);
 }
 
 .saveButton:disabled,
