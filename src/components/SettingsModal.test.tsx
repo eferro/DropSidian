@@ -59,7 +59,7 @@ describe('SettingsModal', () => {
     expect(screen.getByLabelText(/inbox folder/i)).toBeInTheDocument()
   })
 
-  it('calls onInboxPathChange when inbox path is changed', async () => {
+  it('calls onInboxPathChange only when Save button is clicked', async () => {
     const onInboxPathChange = vi.fn()
 
     render(
@@ -75,7 +75,34 @@ describe('SettingsModal', () => {
     await userEvent.clear(input)
     await userEvent.type(input, 'GTD/Inbox')
 
-    expect(onInboxPathChange).toHaveBeenCalled()
+    expect(onInboxPathChange).not.toHaveBeenCalled()
+
+    await userEvent.click(screen.getByRole('button', { name: /save/i }))
+
+    expect(onInboxPathChange).toHaveBeenCalledWith('GTD/Inbox')
+  })
+
+  it('does not call onInboxPathChange when Cancel button is clicked', async () => {
+    const onInboxPathChange = vi.fn()
+    const onClose = vi.fn()
+
+    render(
+      <SettingsModal
+        isOpen={true}
+        onClose={onClose}
+        inboxPath="Inbox"
+        onInboxPathChange={onInboxPathChange}
+      />
+    )
+
+    const input = screen.getByLabelText(/inbox folder/i)
+    await userEvent.clear(input)
+    await userEvent.type(input, 'GTD/Inbox')
+
+    await userEvent.click(screen.getByRole('button', { name: /cancel/i }))
+
+    expect(onInboxPathChange).not.toHaveBeenCalled()
+    expect(onClose).toHaveBeenCalled()
   })
 })
 

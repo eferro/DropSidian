@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react'
 import styles from './SettingsModal.module.css'
 
 interface SettingsModalProps {
@@ -17,6 +18,26 @@ function SettingsModal({
   inboxPath,
   onInboxPathChange,
 }: SettingsModalProps) {
+  const [localInboxPath, setLocalInboxPath] = useState(inboxPath || '')
+
+  useEffect(() => {
+    if (isOpen) {
+      setLocalInboxPath(inboxPath || '')
+    }
+  }, [isOpen, inboxPath])
+
+  function handleSave(): void {
+    if (localInboxPath.trim()) {
+      onInboxPathChange?.(localInboxPath.trim())
+    }
+    onClose()
+  }
+
+  function handleCancel(): void {
+    setLocalInboxPath(inboxPath || '')
+    onClose()
+  }
+
   if (!isOpen) return null
 
   return (
@@ -27,7 +48,7 @@ function SettingsModal({
           <button
             type="button"
             className={styles.closeButton}
-            onClick={onClose}
+            onClick={handleCancel}
             aria-label="Close"
           >
             ×
@@ -58,12 +79,28 @@ function SettingsModal({
               <input
                 type="text"
                 className={styles.input}
-                value={inboxPath || ''}
-                onChange={(e) => onInboxPathChange?.(e.target.value)}
+                value={localInboxPath}
+                onChange={(e) => setLocalInboxPath(e.target.value)}
                 placeholder="e.g., Inbox or GTD/Inbox"
               />
             </label>
           </div>
+        </div>
+        <div className={styles.footer}>
+          <button
+            type="button"
+            className={styles.cancelButton}
+            onClick={handleCancel}
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            className={styles.saveButton}
+            onClick={handleSave}
+          >
+            Save
+          </button>
         </div>
       </div>
     </div>

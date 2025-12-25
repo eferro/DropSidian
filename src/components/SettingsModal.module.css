@@ -155,3 +155,41 @@
   color: var(--color-text-muted);
 }
 
+.footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  padding: 1rem 1.25rem;
+  border-top: 1px solid var(--color-border);
+}
+
+.cancelButton,
+.saveButton {
+  padding: 0.625rem 1.25rem;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  border: 1px solid var(--color-border);
+}
+
+.cancelButton {
+  background: transparent;
+  color: var(--color-text);
+}
+
+.cancelButton:hover {
+  background: var(--color-bg-hover);
+}
+
+.saveButton {
+  background: var(--color-primary);
+  color: white;
+  border-color: var(--color-primary);
+}
+
+.saveButton:hover {
+  opacity: 0.9;
+}
+
