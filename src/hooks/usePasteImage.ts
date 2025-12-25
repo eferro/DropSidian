@@ -31,10 +31,22 @@ export function usePasteImage({
 
   const handlePaste = useCallback(
     async (event: React.ClipboardEvent) => {
+      console.log('[DropSidian] handlePaste triggered', {
+        hasClipboardData: !!event.clipboardData,
+        types: event.clipboardData?.types,
+      })
+
       const imageFile = extractImageFromClipboard(event.clipboardData)
       if (!imageFile) {
+        console.log('[DropSidian] No image file extracted, letting default paste happen')
         return
       }
+
+      console.log('[DropSidian] Image file extracted:', {
+        name: imageFile.name,
+        type: imageFile.type,
+        size: imageFile.size,
+      })
 
       event.preventDefault()
       setUploading(true)
@@ -44,8 +56,12 @@ export function usePasteImage({
         const parentPath = getParentPath(currentNotePath)
         const uploadPath = `${parentPath}/${filename}`
 
+        console.log('[DropSidian] Uploading image to:', uploadPath)
         await uploadBinaryFile(accessToken, uploadPath, imageFile)
+        console.log('[DropSidian] Upload successful')
         onImagePasted(filename)
+      } catch (error) {
+        console.error('[DropSidian] Upload failed:', error)
       } finally {
         setUploading(false)
       }
