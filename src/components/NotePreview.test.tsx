@@ -326,5 +326,35 @@ describe('NotePreview', () => {
       expect(ta.value).toMatch(/!\[\[Pasted image \d{14}\.png\]\]/)
     })
   })
+
+  it('renders with modal backdrop', async () => {
+    vi.mocked(downloadFileWithMetadata).mockResolvedValue(mockFileResponse('# Test'))
+
+    const { container } = render(<NotePreview filePath="/vault/note.md" onClose={mockOnClose} />)
+
+    await waitFor(() => {
+      expect(screen.getByText('note')).toBeInTheDocument()
+    })
+
+    const backdrop = container.querySelector('[class*="modalBackdrop"]')
+    expect(backdrop).toBeInTheDocument()
+  })
+
+  it('closes modal when clicking backdrop', async () => {
+    vi.mocked(downloadFileWithMetadata).mockResolvedValue(mockFileResponse('# Test'))
+    const user = userEvent.setup()
+
+    const { container } = render(<NotePreview filePath="/vault/note.md" onClose={mockOnClose} />)
+
+    await waitFor(() => {
+      expect(screen.getByText('note')).toBeInTheDocument()
+    })
+
+    const backdrop = container.querySelector('[class*="modalBackdrop"]')
+    if (backdrop) {
+      await user.click(backdrop)
+      expect(mockOnClose).toHaveBeenCalled()
+    }
+  })
 })
 

@@ -112,23 +112,36 @@ function NotePreview({
     [handlePasteImage]
   )
 
+  const handleBackdropClick = useCallback(
+    (event: React.MouseEvent<HTMLDivElement>) => {
+      if (event.target === event.currentTarget) {
+        onClose()
+      }
+    },
+    [onClose]
+  )
+
 
   if (loading) {
     return (
-      <div className={styles.loadingContainer}>
-        <div className={styles.spinner} />
-        Loading note...
+      <div className={styles.modalBackdrop} onClick={handleBackdropClick}>
+        <div className={styles.loadingContainer}>
+          <div className={styles.spinner} />
+          Loading note...
+        </div>
       </div>
     )
   }
 
   if (error && !isEditing) {
     return (
-      <div className={styles.errorContainer}>
-        <p className={styles.errorText}>Error: {error}</p>
-        <button type="button" className={styles.errorCloseButton} onClick={onClose}>
-          Close
-        </button>
+      <div className={styles.modalBackdrop} onClick={handleBackdropClick}>
+        <div className={styles.errorContainer}>
+          <p className={styles.errorText}>Error: {error}</p>
+          <button type="button" className={styles.errorCloseButton} onClick={onClose}>
+            Close
+          </button>
+        </div>
       </div>
     )
   }
@@ -136,7 +149,8 @@ function NotePreview({
   const fileName = filePath.split('/').pop() ?? filePath
 
   return (
-    <div className={styles.container}>
+    <div className={styles.modalBackdrop} onClick={handleBackdropClick}>
+      <div className={styles.container}>
       <div className={styles.header}>
         <h2 className={styles.title}>{removeExtension(fileName)}</h2>
         <div className={styles.actions}>
@@ -213,6 +227,7 @@ function NotePreview({
           )}
         </article>
       )}
+      </div>
     </div>
   )
 }
