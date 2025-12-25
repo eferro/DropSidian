@@ -1,14 +1,12 @@
-import { useState, useCallback, useMemo, useEffect } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import ConnectDropboxButton from '../components/ConnectDropboxButton'
 import Header from '../components/Header'
 import VaultSelector from '../components/VaultSelector'
 import SettingsModal from '../components/SettingsModal'
-import FileList from '../components/FileList'
+import InboxNotesList from '../components/InboxNotesList'
 import NotePreview from '../components/NotePreview'
 import { useAuth } from '../context/AuthContext'
 import { uploadFile, getCurrentAccount, DropboxAccount } from '../lib/dropbox-client'
-import { buildNoteIndex } from '../lib/note-index'
-import { ContentIndex } from '../lib/search'
 import { getInboxPath, storeInboxPath } from '../lib/inbox-storage'
 
 function Home() {
@@ -18,9 +16,6 @@ function Home() {
   const [isNewNote, setIsNewNote] = useState(false)
   const [isSettingsOpen, setIsSettingsOpen] = useState(false)
   const [showVaultSelector, setShowVaultSelector] = useState(false)
-  const [fileListKey, setFileListKey] = useState(0)
-  const [filePaths, setFilePaths] = useState<string[]>([])
-  const [contentIndex, setContentIndex] = useState<ContentIndex>(new Map())
   const [account, setAccount] = useState<DropboxAccount | null>(null)
   const [inboxPath, setInboxPath] = useState<string>(() => getInboxPath() || 'Inbox')
 
@@ -32,26 +27,15 @@ function Home() {
       .catch(() => {})
   }, [accessToken])
 
-  const noteIndex = useMemo(() => buildNoteIndex(filePaths), [filePaths])
-
   const handleVaultSelected = useCallback((path: string) => {
     setVaultPath(path)
     setSelectedFile(null)
-    setFilePaths([])
     setShowVaultSelector(false)
     setIsSettingsOpen(false)
   }, [])
 
   const handleNavigateNote = useCallback((path: string) => {
     setSelectedFile(path)
-  }, [])
-
-  const handleNoteContentLoaded = useCallback((path: string, content: string) => {
-    setContentIndex((prev) => {
-      const next = new Map(prev)
-      next.set(path, content)
-      return next
-    })
   }, [])
 
   const generateNoteName = useCallback(() => {
@@ -74,7 +58,6 @@ function Home() {
     await uploadFile(accessToken, noteFullPath, '')
     setIsNewNote(true)
     setSelectedFile(noteFullPath)
-    setFileListKey((k) => k + 1)
   }, [accessToken, vaultPath, inboxPath, generateNoteName])
 
   const handleOpenSettings = useCallback(() => {
@@ -128,13 +111,7 @@ function Home() {
         <>
           {!selectedFile && (
             <>
-              <FileList
-                key={fileListKey}
-                vaultPath={vaultPath}
-                onFileSelect={setSelectedFile}
-                onFilesLoaded={setFilePaths}
-                contentIndex={contentIndex}
-              />
+              <InboxNotesList vaultPath={vaultPath} inboxPath={inboxPath} />
               <button
                 type="button"
                 onClick={handleCreateNote}
@@ -161,10 +138,10 @@ function Home() {
                 setSelectedFile(null)
                 setIsNewNote(false)
               }}
-              noteIndex={noteIndex}
+              noteIndex={new Map()}
               onNavigateNote={handleNavigateNote}
               vaultPath={vaultPath}
-              onContentLoaded={handleNoteContentLoaded}
+              onContentLoaded={() => {}}
               startInEditMode={isNewNote}
             />
           )}

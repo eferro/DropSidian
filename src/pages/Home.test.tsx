@@ -34,6 +34,10 @@ vi.mock('../components/FileList', () => ({
   ),
 }))
 
+vi.mock('../components/InboxNotesList', () => ({
+  default: () => <div data-testid="inbox-notes-list">Inbox Notes List</div>,
+}))
+
 vi.mock('../components/NotePreview', () => ({
   default: ({ onClose }: { onClose: () => void }) => (
     <div data-testid="note-preview">
@@ -140,7 +144,7 @@ describe('Home', () => {
     expect(mockLogout).toHaveBeenCalled()
   })
 
-  it('shows file list after vault is selected', async () => {
+  it('shows inbox notes list after vault is selected', async () => {
     vi.mocked(useAuth).mockReturnValue({
       accessToken: 'test-token',
       accountId: 'account-id',
@@ -156,55 +160,7 @@ describe('Home', () => {
     await user.click(screen.getByRole('button', { name: /select vault/i }))
 
     await waitFor(() => {
-      expect(screen.getByRole('button', { name: /select file/i })).toBeInTheDocument()
-    })
-  })
-
-  it('shows note preview after file is selected', async () => {
-    vi.mocked(useAuth).mockReturnValue({
-      accessToken: 'test-token',
-      accountId: 'account-id',
-      isAuthenticated: true,
-      isLoading: false,
-      setTokens: vi.fn(),
-      logout: mockLogout,
-    })
-    const user = userEvent.setup()
-
-    render(<Home />)
-
-    await user.click(screen.getByRole('button', { name: /select vault/i }))
-    await user.click(screen.getByRole('button', { name: /select file/i }))
-
-    await waitFor(() => {
-      expect(screen.getByTestId('note-preview')).toBeInTheDocument()
-    })
-  })
-
-  it('hides note preview when close is clicked', async () => {
-    vi.mocked(useAuth).mockReturnValue({
-      accessToken: 'test-token',
-      accountId: 'account-id',
-      isAuthenticated: true,
-      isLoading: false,
-      setTokens: vi.fn(),
-      logout: mockLogout,
-    })
-    const user = userEvent.setup()
-
-    render(<Home />)
-
-    await user.click(screen.getByRole('button', { name: /select vault/i }))
-    await user.click(screen.getByRole('button', { name: /select file/i }))
-
-    await waitFor(() => {
-      expect(screen.getByTestId('note-preview')).toBeInTheDocument()
-    })
-
-    await user.click(screen.getByRole('button', { name: /close/i }))
-
-    await waitFor(() => {
-      expect(screen.queryByTestId('note-preview')).not.toBeInTheDocument()
+      expect(screen.getByTestId('inbox-notes-list')).toBeInTheDocument()
     })
   })
 
