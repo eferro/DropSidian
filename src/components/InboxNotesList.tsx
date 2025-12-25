@@ -65,7 +65,12 @@ function InboxNotesList({
               <h3 className={styles.cardTitle}>{nameWithoutExt}</h3>
               {note.content && (
                 <div className={styles.cardPreview}>
-                  <MarkdownPreview content={note.content} maxHeight={200} />
+                  <MarkdownPreview
+                    content={note.content}
+                    maxHeight={200}
+                    accessToken={accessToken ?? undefined}
+                    vaultPath={vaultPath}
+                  />
                 </div>
               )}
               <div className={styles.cardFooter}>
