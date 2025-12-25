@@ -13,8 +13,8 @@ describe('generatePastedImageName', () => {
 describe('extractImageFromClipboard', () => {
   it('returns null when no items in clipboard', () => {
     const clipboardData = {
-      items: [] as DataTransferItemList,
-    } as unknown as DataTransfer
+      items: [] as unknown as DataTransferItemList,
+    } as DataTransfer
 
     const result = extractImageFromClipboard(clipboardData)
 

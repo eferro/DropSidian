@@ -6,7 +6,7 @@ vi.mock('../lib/dropbox-client', () => ({
   uploadBinaryFile: vi.fn(),
 }))
 
-import { uploadBinaryFile } from '../lib/dropbox-client'
+import { uploadBinaryFile, UploadFileResponse } from '../lib/dropbox-client'
 
 describe('usePasteImage', () => {
   beforeEach(() => {
@@ -85,7 +85,7 @@ describe('usePasteImage', () => {
   })
 
   it('sets uploading state during upload', async () => {
-    let resolveUpload: (value: unknown) => void = () => {}
+    let resolveUpload: (value: UploadFileResponse) => void = () => {}
     vi.mocked(uploadBinaryFile).mockImplementation(
       () =>
         new Promise((resolve) => {
