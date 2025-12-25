@@ -1,5 +1,5 @@
 .container {
-  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  font-family: var(--font-sans);
   max-width: 800px;
 }
 
@@ -9,14 +9,14 @@
   gap: 1rem;
   margin-bottom: 1rem;
   padding-bottom: 0.75rem;
-  border-bottom: 1px solid #3a3a4a;
+  border-bottom: 1px solid var(--color-border);
 }
 
 .title {
   flex: 1;
   margin: 0;
   font-size: 1.4rem;
-  color: #e0e0f0;
+  color: var(--color-text-bright);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -30,50 +30,51 @@
 
 .button {
   padding: 0.5rem 1rem;
-  border: 1px solid #4a4a5a;
+  border: 1px solid var(--color-border);
   border-radius: 6px;
   font-size: 0.85rem;
   font-family: inherit;
   cursor: pointer;
   transition: all 0.15s ease;
+  box-shadow: var(--shadow-sm);
 }
 
 .closeButton {
   composes: button;
-  background: #2d2d3a;
-  color: #a0a0b0;
+  background: var(--color-bg-elevated);
+  color: var(--color-text);
 }
 
 .closeButton:hover {
-  background: #3d3d4a;
-  color: #e0e0f0;
-  border-color: #6a6a7a;
+  background: var(--color-bg-hover);
+  color: var(--color-text-bright);
+  border-color: var(--color-border-hover);
 }
 
 .editButton {
   composes: button;
-  background: #2a3535;
-  color: #7ad0d0;
-  border-color: #4a6a6a;
+  background: #dbeafe;
+  color: #1d4ed8;
+  border-color: #93c5fd;
 }
 
 .editButton:hover {
-  background: #354545;
-  color: #9af0f0;
-  border-color: #6a8a8a;
+  background: #bfdbfe;
+  color: #1e40af;
+  border-color: #60a5fa;
 }
 
 .saveButton {
   composes: button;
-  background: #2a4a2a;
-  color: #7ad07a;
-  border-color: #4a6a4a;
+  background: #d1fae5;
+  color: #047857;
+  border-color: #6ee7b7;
 }
 
 .saveButton:hover:not(:disabled) {
-  background: #355535;
-  color: #9af09a;
-  border-color: #6a8a6a;
+  background: #a7f3d0;
+  color: #065f46;
+  border-color: #34d399;
 }
 
 .saveButton:disabled {
@@ -83,15 +84,15 @@
 
 .cancelButton {
   composes: button;
-  background: #3a2a2a;
-  color: #d0a0a0;
-  border-color: #5a4a4a;
+  background: #fef2f2;
+  color: #dc2626;
+  border-color: #fecaca;
 }
 
 .cancelButton:hover:not(:disabled) {
-  background: #4a3535;
-  color: #e0b0b0;
-  border-color: #6a5a5a;
+  background: #fee2e2;
+  color: #b91c1c;
+  border-color: #fca5a5;
 }
 
 .cancelButton:disabled {
@@ -102,10 +103,10 @@
 .errorMessage {
   padding: 0.75rem 1rem;
   margin-bottom: 1rem;
-  background: #3a2a2a;
-  border: 1px solid #5a3a3a;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
   border-radius: 6px;
-  color: #e0a0a0;
+  color: #dc2626;
   font-size: 0.9rem;
 }
 
@@ -113,11 +114,11 @@
   width: 100%;
   min-height: 400px;
   padding: 1rem;
-  background: #1a1a24;
-  border: 1px solid #3a3a4a;
+  background: var(--color-bg-elevated);
+  border: 1px solid var(--color-border);
   border-radius: 8px;
-  color: #c0c0d0;
-  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  color: var(--color-text);
+  font-family: var(--font-mono);
   font-size: 0.9rem;
   line-height: 1.6;
   resize: vertical;
@@ -125,23 +126,24 @@
 
 .editor:focus {
   outline: none;
-  border-color: #5a6a7a;
-  box-shadow: 0 0 0 2px rgba(122, 208, 208, 0.2);
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
 }
 
 .article {
-  padding: 1rem;
-  background: #1a1a24;
-  border: 1px solid #3a3a4a;
+  padding: 1.25rem;
+  background: var(--color-bg-elevated);
+  border: 1px solid var(--color-border);
   border-radius: 8px;
-  color: #c0c0d0;
+  color: var(--color-text);
   line-height: 1.7;
+  box-shadow: var(--shadow-sm);
 }
 
 .article h1,
 .article h2,
 .article h3 {
-  color: #e0e0f0;
+  color: var(--color-text-bright);
   margin-top: 1.5rem;
   margin-bottom: 0.75rem;
 }
@@ -167,15 +169,16 @@
 }
 
 .article code {
-  background: #252530;
+  background: #f3f4f6;
   padding: 0.15rem 0.4rem;
   border-radius: 4px;
-  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  font-family: var(--font-mono);
   font-size: 0.85em;
+  color: #1f2937;
 }
 
 .article pre {
-  background: #252530;
+  background: #1f2937;
   padding: 1rem;
   border-radius: 6px;
   overflow-x: auto;
@@ -185,17 +188,18 @@
 .article pre code {
   background: transparent;
   padding: 0;
+  color: #e5e7eb;
 }
 
 .article blockquote {
-  border-left: 3px solid #5a5a6a;
+  border-left: 3px solid var(--color-border-hover);
   margin: 1rem 0;
   padding-left: 1rem;
-  color: #9a9aaa;
+  color: var(--color-text-muted);
 }
 
 .article a {
-  color: #7ad0d0;
+  color: var(--color-accent);
   text-decoration: none;
 }
 
@@ -208,14 +212,14 @@
   align-items: center;
   justify-content: center;
   padding: 3rem;
-  color: #7a7a8a;
+  color: var(--color-text-muted);
 }
 
 .spinner {
   width: 20px;
   height: 20px;
-  border: 2px solid #3a3a4a;
-  border-top-color: #7ad0d0;
+  border: 2px solid var(--color-border);
+  border-top-color: var(--color-accent);
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
   margin-right: 0.75rem;
@@ -229,18 +233,17 @@
 
 .errorContainer {
   padding: 1.5rem;
-  background: #3a2a2a;
-  border: 1px solid #5a3a3a;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
   border-radius: 8px;
   text-align: center;
 }
 
 .errorText {
-  color: #e0a0a0;
+  color: #dc2626;
   margin-bottom: 1rem;
 }
 
 .errorCloseButton {
   composes: closeButton;
 }
-
