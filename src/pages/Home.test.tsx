@@ -17,6 +17,11 @@ vi.mock('../components/AccountInfo', () => ({
   default: () => <div data-testid="account-info">Account Info</div>,
 }))
 
+vi.mock('../lib/dropbox-client', () => ({
+  getCurrentAccount: vi.fn(),
+  uploadFile: vi.fn(),
+}))
+
 vi.mock('../components/VaultSelector', () => ({
   default: ({ onVaultSelected }: { onVaultSelected: (path: string) => void }) => (
     <button onClick={() => onVaultSelected('/test-vault')}>Select Vault</button>
@@ -39,6 +44,7 @@ vi.mock('../components/NotePreview', () => ({
 }))
 
 import { useAuth } from '../context/AuthContext'
+import { getCurrentAccount } from '../lib/dropbox-client'
 
 describe('Home', () => {
   beforeEach(() => {
@@ -76,7 +82,7 @@ describe('Home', () => {
     expect(screen.getByRole('button', { name: /connect dropbox/i })).toBeInTheDocument()
   })
 
-  it('shows authenticated view with vault selector', () => {
+  it('shows authenticated view with Header and vault selector', async () => {
     vi.mocked(useAuth).mockReturnValue({
       accessToken: 'test-token',
       accountId: 'account-id',
@@ -85,15 +91,25 @@ describe('Home', () => {
       setTokens: vi.fn(),
       logout: mockLogout,
     })
+    vi.mocked(getCurrentAccount).mockResolvedValue({
+      account_id: 'test-account-id',
+      email: 'test@example.com',
+      name: {
+        display_name: 'Test User',
+        given_name: 'Test',
+        surname: 'User',
+      },
+    })
 
     render(<Home />)
 
-    expect(screen.getByTestId('account-info')).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /disconnect/i })).toBeInTheDocument()
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /user menu/i })).toBeInTheDocument()
+    })
     expect(screen.getByRole('button', { name: /select vault/i })).toBeInTheDocument()
   })
 
-  it('calls logout when disconnect button is clicked', async () => {
+  it('calls logout when disconnect button is clicked in user menu', async () => {
     vi.mocked(useAuth).mockReturnValue({
       accessToken: 'test-token',
       accountId: 'account-id',
@@ -101,11 +117,24 @@ describe('Home', () => {
       isLoading: false,
       setTokens: vi.fn(),
       logout: mockLogout,
+    })
+    vi.mocked(getCurrentAccount).mockResolvedValue({
+      account_id: 'test-account-id',
+      email: 'test@example.com',
+      name: {
+        display_name: 'Test User',
+        given_name: 'Test',
+        surname: 'User',
+      },
     })
     const user = userEvent.setup()
 
     render(<Home />)
 
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /user menu/i })).toBeInTheDocument()
+    })
+    await user.click(screen.getByRole('button', { name: /user menu/i }))
     await user.click(screen.getByRole('button', { name: /disconnect/i }))
 
     expect(mockLogout).toHaveBeenCalled()

@@ -1,12 +1,12 @@
-import { useState, useCallback, useMemo } from 'react'
+import { useState, useCallback, useMemo, useEffect } from 'react'
 import ConnectDropboxButton from '../components/ConnectDropboxButton'
-import AccountInfo from '../components/AccountInfo'
+import Header from '../components/Header'
 import VaultSelector from '../components/VaultSelector'
 import FileList from '../components/FileList'
 import NotePreview from '../components/NotePreview'
 import NewNoteModal from '../components/NewNoteModal'
 import { useAuth } from '../context/AuthContext'
-import { uploadFile } from '../lib/dropbox-client'
+import { uploadFile, getCurrentAccount, DropboxAccount } from '../lib/dropbox-client'
 import { buildNoteIndex } from '../lib/note-index'
 import { sanitizeFilename } from '../lib/path-utils'
 import { ContentIndex } from '../lib/search'
@@ -19,6 +19,15 @@ function Home() {
   const [fileListKey, setFileListKey] = useState(0)
   const [filePaths, setFilePaths] = useState<string[]>([])
   const [contentIndex, setContentIndex] = useState<ContentIndex>(new Map())
+  const [account, setAccount] = useState<DropboxAccount | null>(null)
+
+  useEffect(() => {
+    if (!accessToken) return
+
+    getCurrentAccount(accessToken)
+      .then(setAccount)
+      .catch(() => {})
+  }, [accessToken])
 
   const noteIndex = useMemo(() => buildNoteIndex(filePaths), [filePaths])
 
@@ -74,14 +83,13 @@ function Home() {
     )
   }
 
+  const user = account
+    ? { displayName: account.name.display_name, email: account.email }
+    : undefined
+
   return (
     <main>
-      <h1>DropSidian</h1>
-      <AccountInfo />
-      <button type="button" onClick={logout}>
-        Disconnect
-      </button>
-      <hr />
+      <Header user={user} onLogout={logout} />
       <VaultSelector onVaultSelected={handleVaultSelected} />
       {vaultPath && !selectedFile && (
         <>
