@@ -8,6 +8,13 @@ async function assertResponseOk(
   }
 }
 
+function encodeJsonForHeader(value: unknown): string {
+  const jsonString = JSON.stringify(value);
+  return jsonString.replace(/[\u0080-\uFFFF]/g, (char) => {
+    return "\\u" + ("0000" + char.charCodeAt(0).toString(16)).slice(-4);
+  });
+}
+
 export interface DropboxAccount {
   account_id: string;
   email: string;
@@ -128,7 +135,7 @@ export async function downloadFile(
       method: "POST",
       headers: {
         Authorization: `Bearer ${accessToken}`,
-        "Dropbox-API-Arg": JSON.stringify({ path }),
+        "Dropbox-API-Arg": encodeJsonForHeader({ path }),
       },
     },
   );
@@ -154,7 +161,7 @@ export async function downloadFileWithMetadata(
       method: "POST",
       headers: {
         Authorization: `Bearer ${accessToken}`,
-        "Dropbox-API-Arg": JSON.stringify({ path }),
+        "Dropbox-API-Arg": encodeJsonForHeader({ path }),
       },
     },
   );
@@ -192,7 +199,7 @@ export async function uploadFile(
       method: "POST",
       headers: {
         Authorization: `Bearer ${accessToken}`,
-        "Dropbox-API-Arg": JSON.stringify({ path, mode: "add" }),
+        "Dropbox-API-Arg": encodeJsonForHeader({ path, mode: "add" }),
         "Content-Type": "application/octet-stream",
       },
       body: content,
@@ -221,7 +228,7 @@ export async function updateFile(
       method: "POST",
       headers: {
         Authorization: `Bearer ${accessToken}`,
-        "Dropbox-API-Arg": JSON.stringify({
+        "Dropbox-API-Arg": encodeJsonForHeader({
           path,
           mode: { ".tag": "update", update: rev },
         }),
@@ -288,7 +295,7 @@ export async function uploadBinaryFile(
       method: "POST",
       headers: {
         Authorization: `Bearer ${accessToken}`,
-        "Dropbox-API-Arg": JSON.stringify({ path, mode: "add" }),
+        "Dropbox-API-Arg": encodeJsonForHeader({ path, mode: "add" }),
         "Content-Type": "application/octet-stream",
       },
       body: blob,

@@ -1,5 +1,6 @@
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import remarkBreaks from "remark-breaks";
 import { NoteIndex, resolveWikilink } from "../lib/note-index";
 import { parseWikilinks } from "../lib/wikilink-parser";
 import { parseEmbeds, isImageEmbed } from "../lib/embed-parser";
@@ -121,6 +122,29 @@ function splitContent(
   return segments;
 }
 
+function combineTextSegments(segments: ContentSegment[]): ContentSegment[] {
+  const combined: ContentSegment[] = [];
+  let currentText = "";
+
+  for (const segment of segments) {
+    if (segment.type === "text") {
+      currentText += segment.content;
+    } else {
+      if (currentText) {
+        combined.push({ type: "text", content: currentText });
+        currentText = "";
+      }
+      combined.push(segment);
+    }
+  }
+
+  if (currentText) {
+    combined.push({ type: "text", content: currentText });
+  }
+
+  return combined.length > 0 ? combined : [{ type: "text", content: "" }];
+}
+
 function MarkdownWithWikilinks({
   content,
   noteIndex,
@@ -130,10 +154,11 @@ function MarkdownWithWikilinks({
   vaultPath,
 }: MarkdownWithWikilinksProps) {
   const segments = splitContent(content, noteIndex, currentPath, vaultPath);
+  const combinedSegments = combineTextSegments(segments);
 
   return (
     <>
-      {segments.map((segment, index) => {
+      {combinedSegments.map((segment, index) => {
         if (segment.type === "wikilink") {
           return (
             <WikilinkRenderer
@@ -157,11 +182,15 @@ function MarkdownWithWikilinks({
           );
         }
 
-        return (
-          <ReactMarkdown key={index} remarkPlugins={[remarkGfm]}>
-            {segment.content}
-          </ReactMarkdown>
-        );
+        if (segment.content.trim()) {
+          return (
+            <ReactMarkdown key={index} remarkPlugins={[remarkGfm, remarkBreaks]}>
+              {segment.content}
+            </ReactMarkdown>
+          );
+        }
+
+        return null;
       })}
     </>
   );

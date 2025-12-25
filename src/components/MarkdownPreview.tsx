@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import ReactMarkdown from "react-markdown";
+import remarkBreaks from "remark-breaks";
 import styles from "./MarkdownPreview.module.css";
 import {
   extractImageReferences,
@@ -111,7 +112,9 @@ function MarkdownPreview({
       className={styles.preview}
       style={{ maxHeight: `${maxHeight}px` }}
     >
-      <ReactMarkdown>{processedContent}</ReactMarkdown>
+      <ReactMarkdown remarkPlugins={[remarkBreaks]}>
+        {processedContent}
+      </ReactMarkdown>
     </div>
   );
 }
