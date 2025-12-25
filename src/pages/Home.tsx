@@ -8,6 +8,7 @@ import NewNoteModal from '../components/NewNoteModal'
 import { useAuth } from '../context/AuthContext'
 import { uploadFile } from '../lib/dropbox-client'
 import { buildNoteIndex } from '../lib/note-index'
+import { sanitizeFilename } from '../lib/path-utils'
 
 function Home() {
   const { isAuthenticated, isLoading, logout, accessToken } = useAuth()
@@ -33,7 +34,8 @@ function Home() {
     async (title: string, content: string) => {
       if (!accessToken || !vaultPath) return
 
-      const filename = `${title}.md`
+      const safeTitle = sanitizeFilename(title) || 'Untitled'
+      const filename = `${safeTitle}.md`
       const inboxPath = `${vaultPath}/Inbox/${filename}`
 
       await uploadFile(accessToken, inboxPath, content)
@@ -104,6 +106,7 @@ function Home() {
           onClose={() => setSelectedFile(null)}
           noteIndex={noteIndex}
           onNavigateNote={handleNavigateNote}
+          vaultPath={vaultPath ?? undefined}
         />
       )}
       <NewNoteModal

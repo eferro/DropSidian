@@ -3,11 +3,12 @@ import {
   generateCodeChallenge,
   generateRandomString,
 } from './pkce'
+import { debugLog } from './logger'
 
 const DROPBOX_APP_KEY = import.meta.env.VITE_DROPBOX_APP_KEY as string
 const REDIRECT_URI = import.meta.env.VITE_REDIRECT_URI as string
 
-console.log('[DropSidian Debug] Environment config:', {
+debugLog('Environment config', {
   DROPBOX_APP_KEY: DROPBOX_APP_KEY ? `${DROPBOX_APP_KEY.substring(0, 4)}...` : 'NOT SET',
   REDIRECT_URI: REDIRECT_URI || 'NOT SET',
   currentOrigin: typeof window !== 'undefined' ? window.location.origin : 'N/A',
@@ -66,11 +67,10 @@ export async function buildAuthUrl(): Promise<string> {
 
   const authUrl = `https://www.dropbox.com/oauth2/authorize?${params.toString()}`
   
-  console.log('[DropSidian Debug] buildAuthUrl:', {
+  debugLog('buildAuthUrl', {
     redirect_uri: REDIRECT_URI,
     client_id: DROPBOX_APP_KEY ? `${DROPBOX_APP_KEY.substring(0, 4)}...` : 'NOT SET',
     state: state.substring(0, 8) + '...',
-    fullUrl: authUrl,
   })
 
   return authUrl

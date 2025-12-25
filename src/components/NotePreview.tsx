@@ -13,6 +13,7 @@ interface NotePreviewProps {
   onClose: () => void
   noteIndex?: NoteIndex
   onNavigateNote?: (path: string) => void
+  vaultPath?: string
 }
 
 function removeExtension(filename: string): string {
@@ -24,6 +25,7 @@ function NotePreview({
   onClose,
   noteIndex,
   onNavigateNote,
+  vaultPath,
 }: NotePreviewProps) {
   const { accessToken } = useAuth()
   const [content, setContent] = useState<string | null>(null)
@@ -171,6 +173,7 @@ function NotePreview({
               onNavigate={onNavigateNote}
               accessToken={accessToken ?? undefined}
               currentPath={filePath}
+              vaultPath={vaultPath}
             />
           ) : (
             <ReactMarkdown remarkPlugins={[remarkGfm]}>

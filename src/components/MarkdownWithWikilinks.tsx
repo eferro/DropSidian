@@ -3,6 +3,7 @@ import remarkGfm from 'remark-gfm'
 import { NoteIndex, resolveWikilink } from '../lib/note-index'
 import { parseWikilinks } from '../lib/wikilink-parser'
 import { parseEmbeds, isImageEmbed } from '../lib/embed-parser'
+import { sanitizePath, isWithinVault } from '../lib/path-utils'
 import WikilinkRenderer from './WikilinkRenderer'
 import ImageEmbed from './ImageEmbed'
 
@@ -12,6 +13,7 @@ interface MarkdownWithWikilinksProps {
   onNavigate: (path: string) => void
   accessToken?: string
   currentPath?: string
+  vaultPath?: string
 }
 
 interface ContentSegment {
@@ -40,7 +42,8 @@ function getParentPath(filePath: string): string {
 function splitContent(
   content: string,
   noteIndex: NoteIndex,
-  currentPath?: string
+  currentPath?: string,
+  vaultPath?: string
 ): ContentSegment[] {
   const wikilinks = parseWikilinks(content)
   const embeds = parseEmbeds(content)
@@ -86,13 +89,24 @@ function splitContent(
       })
     } else if (item.type === 'embed' && isImageEmbed(item.target)) {
       const parentPath = currentPath ? getParentPath(currentPath) : ''
-      const imagePath = `${parentPath}/${item.target}`
-      segments.push({
-        type: 'image-embed',
-        content: content.slice(item.startIndex, item.endIndex),
-        target: item.target,
-        filePath: imagePath,
-      })
+      const rawImagePath = `${parentPath}/${item.target}`
+      const imagePath = sanitizePath(rawImagePath)
+
+      const isSafe = !vaultPath || isWithinVault(imagePath, vaultPath)
+
+      if (isSafe) {
+        segments.push({
+          type: 'image-embed',
+          content: content.slice(item.startIndex, item.endIndex),
+          target: item.target,
+          filePath: imagePath,
+        })
+      } else {
+        segments.push({
+          type: 'text',
+          content: `[Invalid path: ${item.target}]`,
+        })
+      }
     } else {
       segments.push({
         type: 'text',
@@ -119,8 +133,9 @@ function MarkdownWithWikilinks({
   onNavigate,
   accessToken,
   currentPath,
+  vaultPath,
 }: MarkdownWithWikilinksProps) {
-  const segments = splitContent(content, noteIndex, currentPath)
+  const segments = splitContent(content, noteIndex, currentPath, vaultPath)
 
   return (
     <>

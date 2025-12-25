@@ -9,10 +9,11 @@ vi.mock('../context/AuthContext', () => ({
 
 vi.mock('../lib/dropbox-client', () => ({
   listFolder: vi.fn(),
+  listAllFiles: vi.fn(),
 }))
 
 import { useAuth } from '../context/AuthContext'
-import { listFolder, ListFolderResponse, DropboxEntry } from '../lib/dropbox-client'
+import { listFolder, listAllFiles, ListFolderResponse, DropboxEntry } from '../lib/dropbox-client'
 
 function mockListFolderResponse(entries: DropboxEntry[]): ListFolderResponse {
   return {
@@ -27,6 +28,7 @@ describe('FileList', () => {
 
   beforeEach(() => {
     vi.clearAllMocks()
+    vi.mocked(listAllFiles).mockResolvedValue([])
     vi.mocked(useAuth).mockReturnValue({
       accessToken: 'test-token',
       accountId: null,
@@ -35,6 +37,7 @@ describe('FileList', () => {
       setTokens: vi.fn(),
       logout: vi.fn(),
     })
+    vi.mocked(listAllFiles).mockResolvedValue([])
   })
 
   it('shows loading state initially', () => {
@@ -256,13 +259,14 @@ describe('FileList', () => {
 
   it('calls onFilesLoaded with markdown file paths when files are loaded', async () => {
     const onFilesLoaded = vi.fn()
-    vi.mocked(listFolder).mockResolvedValue(
-      mockListFolderResponse([
-        { '.tag': 'file', name: 'note.md', path_lower: '/note.md', path_display: '/Vault/note.md', id: 'id:1' },
-        { '.tag': 'file', name: 'another.md', path_lower: '/another.md', path_display: '/Vault/another.md', id: 'id:2' },
-        { '.tag': 'folder', name: 'subfolder', path_lower: '/subfolder', path_display: '/Vault/subfolder', id: 'id:3' },
-      ])
-    )
+    vi.mocked(listAllFiles).mockResolvedValue([
+      { '.tag': 'file', name: 'note.md', path_lower: '/note.md', path_display: '/Vault/note.md', id: 'id:1' },
+      { '.tag': 'file', name: 'another.md', path_lower: '/another.md', path_display: '/Vault/another.md', id: 'id:2' },
+    ])
+    vi.mocked(listFolder).mockResolvedValue(mockListFolderResponse([
+      { '.tag': 'file', name: 'note.md', path_lower: '/note.md', path_display: '/Vault/note.md', id: 'id:1' },
+      { '.tag': 'file', name: 'another.md', path_lower: '/another.md', path_display: '/Vault/another.md', id: 'id:2' },
+    ]))
 
     render(
       <FileList

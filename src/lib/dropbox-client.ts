@@ -1,3 +1,13 @@
+async function assertResponseOk(
+  response: Response,
+  errorPrefix: string
+): Promise<void> {
+  if (!response.ok) {
+    const error = await response.text()
+    throw new Error(`${errorPrefix}: ${error}`)
+  }
+}
+
 export interface DropboxAccount {
   account_id: string
   email: string
@@ -21,11 +31,7 @@ export async function getCurrentAccount(
     }
   )
 
-  if (!response.ok) {
-    const error = await response.text()
-    throw new Error(`Failed to get account info: ${error}`)
-  }
-
+  await assertResponseOk(response, 'Failed to get account info')
   return response.json()
 }
 
@@ -70,11 +76,7 @@ export async function listFolder(
     }
   )
 
-  if (!response.ok) {
-    const error = await response.text()
-    throw new Error(`Failed to list folder: ${error}`)
-  }
-
+  await assertResponseOk(response, 'Failed to list folder')
   return response.json()
 }
 
@@ -94,11 +96,7 @@ export async function listFolderContinue(
     }
   )
 
-  if (!response.ok) {
-    const error = await response.text()
-    throw new Error(`Failed to continue listing folder: ${error}`)
-  }
-
+  await assertResponseOk(response, 'Failed to continue listing folder')
   return response.json()
 }
 
@@ -134,11 +132,7 @@ export async function downloadFile(
     }
   )
 
-  if (!response.ok) {
-    const error = await response.text()
-    throw new Error(`Failed to download file: ${error}`)
-  }
-
+  await assertResponseOk(response, 'Failed to download file')
   return response.text()
 }
 
@@ -164,10 +158,7 @@ export async function downloadFileWithMetadata(
     }
   )
 
-  if (!response.ok) {
-    const error = await response.text()
-    throw new Error(`Failed to download file: ${error}`)
-  }
+  await assertResponseOk(response, 'Failed to download file')
 
   const metadata = JSON.parse(response.headers.get('Dropbox-API-Result') ?? '{}')
   const content = await response.text()
@@ -205,11 +196,7 @@ export async function uploadFile(
     }
   )
 
-  if (!response.ok) {
-    const error = await response.text()
-    throw new Error(`Failed to upload file: ${error}`)
-  }
-
+  await assertResponseOk(response, 'Failed to upload file')
   return response.json()
 }
 
@@ -245,11 +232,7 @@ export async function updateFile(
     throw new Error('Conflict: file was modified')
   }
 
-  if (!response.ok) {
-    const error = await response.text()
-    throw new Error(`Failed to update file: ${error}`)
-  }
-
+  await assertResponseOk(response, 'Failed to update file')
   return response.json()
 }
 
@@ -269,10 +252,7 @@ export async function getTemporaryLink(
     }
   )
 
-  if (!response.ok) {
-    const error = await response.text()
-    throw new Error(`Failed to get temporary link: ${error}`)
-  }
+  await assertResponseOk(response, 'Failed to get temporary link')
 
   const data = await response.json()
   return data.link
@@ -296,11 +276,7 @@ export async function uploadBinaryFile(
     }
   )
 
-  if (!response.ok) {
-    const error = await response.text()
-    throw new Error(`Failed to upload file: ${error}`)
-  }
-
+  await assertResponseOk(response, 'Failed to upload file')
   return response.json()
 }
 

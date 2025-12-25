@@ -4,14 +4,14 @@ import { AuthProvider } from './context/AuthContext'
 import Home from './pages/Home'
 import Callback from './pages/Callback'
 import NotFound from './pages/NotFound'
+import { debugLog } from './lib/logger'
 
 function OAuthRedirectHandler() {
   const [shouldRedirect, setShouldRedirect] = useState(false)
   const [callbackParams, setCallbackParams] = useState('')
 
   useEffect(() => {
-    console.log('[DropSidian Debug] OAuthRedirectHandler - checking URL:', {
-      href: window.location.href,
+    debugLog('OAuthRedirectHandler - checking URL', {
       search: window.location.search,
       hash: window.location.hash,
       pathname: window.location.pathname,
@@ -23,14 +23,11 @@ function OAuthRedirectHandler() {
     const errorDescription = params.get('error_description')
 
     if (error) {
-      console.error('[DropSidian Debug] OAuth error in URL:', {
-        error,
-        errorDescription,
-      })
+      debugLog('OAuth error in URL', { error, errorDescription })
     }
 
     if (code) {
-      console.log('[DropSidian Debug] OAuth code received, redirecting to callback')
+      debugLog('OAuth code received, redirecting to callback')
       setCallbackParams(window.location.search)
       window.history.replaceState({}, '', window.location.pathname)
       setShouldRedirect(true)

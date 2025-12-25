@@ -7,6 +7,7 @@ import {
   clearOAuthState,
 } from '../lib/dropbox-auth'
 import { useAuth } from '../context/AuthContext'
+import { debugLog } from '../lib/logger'
 
 let isExchanging = false
 
@@ -18,14 +19,13 @@ function Callback() {
   const { setTokens } = useAuth()
 
   useEffect(() => {
-    console.log('[DropSidian Debug] Callback - processing:', {
+    debugLog('Callback - processing', {
       isExchanging,
       searchParams: Object.fromEntries(searchParams.entries()),
-      href: window.location.href,
     })
 
     if (isExchanging) {
-      console.log('[DropSidian Debug] Callback - already exchanging, skipping')
+      debugLog('Callback - already exchanging, skipping')
       return
     }
 
@@ -35,53 +35,47 @@ function Callback() {
     const errorDescription = searchParams.get('error_description')
 
     if (error) {
-      console.error('[DropSidian Debug] Callback - OAuth error:', {
-        error,
-        errorDescription,
-      })
+      debugLog('Callback - OAuth error', { error, errorDescription })
       setError(`OAuth error: ${error} - ${errorDescription}`)
       setIsProcessing(false)
       return
     }
 
     if (!code) {
-      console.error('[DropSidian Debug] Callback - No code received')
+      debugLog('Callback - No code received')
       setError('No authorization code received')
       setIsProcessing(false)
       return
     }
 
     if (!state || !validateOAuthState(state)) {
-      console.error('[DropSidian Debug] Callback - Invalid state:', {
-        receivedState: state,
-        storedState: 'check sessionStorage',
-      })
+      debugLog('Callback - Invalid state', { receivedState: state })
       setError('Invalid state parameter - possible CSRF attack')
       setIsProcessing(false)
       return
     }
 
     const verifier = getStoredCodeVerifier()
-    console.log('[DropSidian Debug] Callback - verifier exists:', !!verifier)
+    debugLog('Callback - verifier exists', { exists: !!verifier })
     
     if (!verifier) {
-      console.error('[DropSidian Debug] Callback - No verifier found')
+      debugLog('Callback - No verifier found')
       setIsProcessing(false)
       return
     }
 
     isExchanging = true
-    console.log('[DropSidian Debug] Callback - starting token exchange')
+    debugLog('Callback - starting token exchange')
 
     exchangeCodeForTokens(code)
       .then((tokens) => {
-        console.log('[DropSidian Debug] Callback - token exchange successful')
+        debugLog('Callback - token exchange successful')
         clearOAuthState()
         setTokens(tokens.access_token, tokens.refresh_token, tokens.account_id)
         navigate('/', { replace: true })
       })
       .catch((err) => {
-        console.error('[DropSidian Debug] Callback - token exchange failed:', err)
+        debugLog('Callback - token exchange failed', { error: err.message })
         setError(err.message)
         setIsProcessing(false)
       })
