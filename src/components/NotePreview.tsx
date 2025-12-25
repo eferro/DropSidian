@@ -14,6 +14,7 @@ interface NotePreviewProps {
   noteIndex?: NoteIndex
   onNavigateNote?: (path: string) => void
   vaultPath?: string
+  onContentLoaded?: (path: string, content: string) => void
 }
 
 function removeExtension(filename: string): string {
@@ -26,6 +27,7 @@ function NotePreview({
   noteIndex,
   onNavigateNote,
   vaultPath,
+  onContentLoaded,
 }: NotePreviewProps) {
   const { accessToken } = useAuth()
   const [content, setContent] = useState<string | null>(null)
@@ -50,12 +52,15 @@ function NotePreview({
         setEditContent(result.content)
         setRev(result.rev)
         setLoading(false)
+        if (onContentLoaded) {
+          onContentLoaded(filePath, result.content)
+        }
       })
       .catch((err) => {
         setError(err.message)
         setLoading(false)
       })
-  }, [accessToken, filePath])
+  }, [accessToken, filePath, onContentLoaded])
 
   const handleSave = useCallback(async () => {
     if (!accessToken || !rev) return

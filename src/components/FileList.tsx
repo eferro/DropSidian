@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { listFolder, listAllFiles, DropboxEntry } from '../lib/dropbox-client'
 import { useAuth } from '../context/AuthContext'
-import { filterNotesByTitle } from '../lib/search'
+import { combinedSearch, ContentIndex } from '../lib/search'
 import SearchInput from './SearchInput'
 import styles from './FileList.module.css'
 
@@ -9,6 +9,7 @@ interface FileListProps {
   vaultPath: string
   onFileSelect: (path: string) => void
   onFilesLoaded?: (filePaths: string[]) => void
+  contentIndex?: ContentIndex
 }
 
 function isMarkdownFile(entry: DropboxEntry): boolean {
@@ -36,7 +37,7 @@ function getCurrentFolderName(path: string, vaultPath: string): string {
   return path.split('/').pop() ?? ''
 }
 
-function FileList({ vaultPath, onFileSelect, onFilesLoaded }: FileListProps) {
+function FileList({ vaultPath, onFileSelect, onFilesLoaded, contentIndex }: FileListProps) {
   const { accessToken } = useAuth()
   const [entries, setEntries] = useState<DropboxEntry[]>([])
   const [allMarkdownPaths, setAllMarkdownPaths] = useState<string[]>([])
@@ -116,7 +117,9 @@ function FileList({ vaultPath, onFileSelect, onFilesLoaded }: FileListProps) {
   const isInSubdirectory = currentPath !== vaultPath
   const currentFolderName = getCurrentFolderName(currentPath, vaultPath)
   const isSearching = searchQuery.trim().length > 0
-  const searchResults = isSearching ? filterNotesByTitle(allMarkdownPaths, searchQuery) : []
+  const searchResults = isSearching
+    ? combinedSearch(allMarkdownPaths, contentIndex ?? new Map(), searchQuery)
+    : []
 
   function handleFolderClick(folderPath: string) {
     setCurrentPath(folderPath)

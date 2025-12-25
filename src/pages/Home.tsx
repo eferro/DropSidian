@@ -9,6 +9,7 @@ import { useAuth } from '../context/AuthContext'
 import { uploadFile } from '../lib/dropbox-client'
 import { buildNoteIndex } from '../lib/note-index'
 import { sanitizeFilename } from '../lib/path-utils'
+import { ContentIndex } from '../lib/search'
 
 function Home() {
   const { isAuthenticated, isLoading, logout, accessToken } = useAuth()
@@ -17,6 +18,7 @@ function Home() {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [fileListKey, setFileListKey] = useState(0)
   const [filePaths, setFilePaths] = useState<string[]>([])
+  const [contentIndex, setContentIndex] = useState<ContentIndex>(new Map())
 
   const noteIndex = useMemo(() => buildNoteIndex(filePaths), [filePaths])
 
@@ -28,6 +30,14 @@ function Home() {
 
   const handleNavigateNote = useCallback((path: string) => {
     setSelectedFile(path)
+  }, [])
+
+  const handleNoteContentLoaded = useCallback((path: string, content: string) => {
+    setContentIndex((prev) => {
+      const next = new Map(prev)
+      next.set(path, content)
+      return next
+    })
   }, [])
 
   const handleCreateNote = useCallback(
@@ -80,6 +90,7 @@ function Home() {
             vaultPath={vaultPath}
             onFileSelect={setSelectedFile}
             onFilesLoaded={setFilePaths}
+            contentIndex={contentIndex}
           />
           <button
             type="button"
@@ -107,6 +118,7 @@ function Home() {
           noteIndex={noteIndex}
           onNavigateNote={handleNavigateNote}
           vaultPath={vaultPath ?? undefined}
+          onContentLoaded={handleNoteContentLoaded}
         />
       )}
       <NewNoteModal
