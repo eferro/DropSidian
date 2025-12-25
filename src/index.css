@@ -1,4 +1,4 @@
-/* DropSidian - Global Styles */
+/* DropSidian - Global Styles (eferro-picks inspired) */
 
 * {
   box-sizing: border-box;
@@ -7,26 +7,26 @@
 }
 
 :root {
-  /* Colors */
-  --color-bg: #1a1a24;
-  --color-bg-elevated: #22222e;
-  --color-bg-hover: #2a2a38;
-  --color-border: #3a3a4a;
-  --color-border-hover: #5a5a6a;
+  /* Colors - Light theme inspired by eferro-picks */
+  --color-bg: #f3f4f6;
+  --color-bg-elevated: #ffffff;
+  --color-bg-hover: #e5e7eb;
+  --color-border: #e5e7eb;
+  --color-border-hover: #d1d5db;
   
-  --color-text: #c0c0d0;
-  --color-text-muted: #8a8a9a;
-  --color-text-bright: #e0e0f0;
+  --color-text: #374151;
+  --color-text-muted: #6b7280;
+  --color-text-bright: #1f2937;
   
-  --color-accent: #7ad0d0;
-  --color-accent-hover: #9af0f0;
+  --color-accent: #3b82f6;
+  --color-accent-hover: #2563eb;
   
-  --color-success: #7ad07a;
-  --color-warning: #d0a07a;
-  --color-error: #d07a7a;
+  --color-success: #10b981;
+  --color-warning: #f59e0b;
+  --color-error: #ef4444;
   
   /* Typography */
-  --font-sans: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  --font-sans: system-ui, -apple-system, 'Segoe UI', sans-serif;
   --font-mono: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
   
   /* Spacing */
@@ -40,6 +40,12 @@
   --radius-sm: 4px;
   --radius-md: 8px;
   --radius-lg: 12px;
+  --radius-full: 9999px;
+  
+  /* Shadows */
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
 }
 
 html, body {
@@ -64,7 +70,7 @@ body {
 main {
   max-width: 900px;
   margin: 0 auto;
-  padding: var(--spacing-lg);
+  padding: 0 var(--spacing-lg) var(--spacing-lg);
 }
 
 /* Headings */
@@ -92,9 +98,11 @@ h3 {
 a {
   color: var(--color-accent);
   text-decoration: none;
+  transition: color 0.15s ease;
 }
 
 a:hover {
+  color: var(--color-accent-hover);
   text-decoration: underline;
 }
 
@@ -109,6 +117,7 @@ button {
   background: var(--color-bg-elevated);
   color: var(--color-text);
   transition: all 0.15s ease;
+  box-shadow: var(--shadow-sm);
 }
 
 button:hover {
@@ -122,6 +131,19 @@ button:disabled {
   cursor: not-allowed;
 }
 
+/* Primary Button */
+button.primary {
+  background: var(--color-accent);
+  color: white;
+  border-color: var(--color-accent);
+}
+
+button.primary:hover {
+  background: var(--color-accent-hover);
+  border-color: var(--color-accent-hover);
+  color: white;
+}
+
 /* Inputs */
 input, textarea {
   font-family: inherit;
@@ -129,15 +151,20 @@ input, textarea {
   padding: var(--spacing-sm) var(--spacing-md);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
-  background: var(--color-bg);
+  background: var(--color-bg-elevated);
   color: var(--color-text);
   width: 100%;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
 input:focus, textarea:focus {
   outline: none;
   border-color: var(--color-accent);
-  box-shadow: 0 0 0 2px rgba(122, 208, 208, 0.2);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+}
+
+input::placeholder, textarea::placeholder {
+  color: var(--color-text-muted);
 }
 
 textarea {
@@ -163,9 +190,29 @@ p {
   margin-bottom: var(--spacing-sm);
 }
 
-/* Account Info & Header Section */
-main > button {
-  margin-bottom: var(--spacing-sm);
+/* Cards */
+.card {
+  background: var(--color-bg-elevated);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  padding: var(--spacing-lg);
+  transition: box-shadow 0.2s ease;
+}
+
+.card:hover {
+  box-shadow: var(--shadow-lg);
+}
+
+/* Chips/Tags */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--radius-full);
+  font-size: 0.75rem;
+  font-weight: 500;
+  background: #dbeafe;
+  color: #1e40af;
 }
 
 /* Scrollbar */
@@ -179,11 +226,58 @@ main > button {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--color-border);
+  background: var(--color-border-hover);
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--color-border-hover);
+  background: #9ca3af;
 }
 
+/* Landing Page Styles */
+.landing {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 80vh;
+  text-align: center;
+  padding: var(--spacing-xl);
+}
+
+.landing h1 {
+  font-size: 2.5rem;
+  margin-bottom: var(--spacing-sm);
+}
+
+.landing p {
+  color: var(--color-text-muted);
+  font-size: 1.1rem;
+  margin-bottom: var(--spacing-xl);
+}
+
+/* FAB Button */
+.fab {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--color-accent);
+  color: white;
+  font-size: 1.5rem;
+  font-weight: 300;
+  border: none;
+  box-shadow: var(--shadow-lg);
+  cursor: pointer;
+  transition: transform 0.15s ease, background-color 0.15s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.fab:hover {
+  background: var(--color-accent-hover);
+  transform: scale(1.05);
+}

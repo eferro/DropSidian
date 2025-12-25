@@ -1,0 +1,123 @@
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 1.5rem;
+  background: white;
+  box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1);
+  margin-bottom: 1rem;
+}
+
+.logo {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #1f2937;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.logo::before {
+  content: '🔗';
+}
+
+.userMenuContainer {
+  position: relative;
+}
+
+.avatarButton {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #3b82f6;
+  color: white;
+  font-weight: 600;
+  font-size: 1rem;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.avatarButton:hover {
+  background: #2563eb;
+}
+
+.dropdown {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  right: 0;
+  min-width: 220px;
+  background: white;
+  border-radius: 0.5rem;
+  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  border: 1px solid #e5e7eb;
+  z-index: 50;
+  overflow: hidden;
+}
+
+.userInfo {
+  padding: 1rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.userName {
+  font-weight: 600;
+  color: #1f2937;
+  margin: 0;
+  font-size: 0.95rem;
+}
+
+.userEmail {
+  color: #6b7280;
+  font-size: 0.85rem;
+  margin: 0.25rem 0 0;
+}
+
+.menuActions {
+  padding: 0.5rem 0;
+}
+
+.menuButton {
+  width: 100%;
+  padding: 0.625rem 1rem;
+  background: none;
+  border: none;
+  text-align: left;
+  font-size: 0.9rem;
+  color: #374151;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: background-color 0.1s ease;
+}
+
+.menuButton:hover {
+  background: #f3f4f6;
+  color: #1f2937;
+}
+
+.menuButton::before {
+  font-size: 1rem;
+}
+
+.settingsButton::before {
+  content: '⚙️';
+}
+
+.disconnectButton {
+  color: #dc2626;
+}
+
+.disconnectButton::before {
+  content: '🚪';
+}
+
+.disconnectButton:hover {
+  background: #fef2f2;
+  color: #b91c1c;
+}
+
