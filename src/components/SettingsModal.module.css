@@ -14,8 +14,8 @@
   border-radius: 12px;
   box-shadow: var(--shadow-lg);
   width: 100%;
-  max-width: 480px;
-  max-height: 90vh;
+  max-width: 500px;
+  max-height: min(600px, 90vh);
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -80,19 +80,18 @@
   margin-bottom: 0.75rem;
 }
 
-.vaultInfo {
+.fieldContainer {
   display: flex;
   align-items: center;
   gap: 0.75rem;
+}
+
+.pathDisplay {
+  flex: 1;
   padding: 0.75rem;
   background: var(--color-bg);
   border: 1px solid var(--color-border);
   border-radius: 8px;
-  margin-bottom: 0.75rem;
-}
-
-.vaultPath {
-  flex: 1;
   font-size: 0.9rem;
   color: var(--color-text);
   font-family: var(--font-mono);
@@ -125,15 +124,8 @@
   margin: 0;
 }
 
-.inputLabel {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  font-size: 0.9rem;
-  color: var(--color-text);
-}
-
 .input {
+  flex: 1;
   padding: 0.75rem;
   background: var(--color-bg);
   border: 1px solid var(--color-border);
@@ -142,7 +134,6 @@
   color: var(--color-text);
   font-family: var(--font-mono);
   transition: all 0.15s ease;
-  width: 100%;
 }
 
 .input:focus {
@@ -197,6 +188,20 @@
 .cancelButton:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+.pathPreview {
+  margin-top: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  background: var(--color-bg);
+  border-radius: 6px;
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+}
+
+.pathPreviewValue {
+  font-family: var(--font-mono);
+  color: var(--color-text);
 }
 
 .errorMessage {

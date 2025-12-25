@@ -175,5 +175,40 @@ describe('SettingsModal', () => {
       ).toBeInTheDocument()
     })
   })
+
+  it('shows full path preview when vault and inbox are set', () => {
+    render(
+      <SettingsModal
+        isOpen={true}
+        onClose={vi.fn()}
+        vaultPath="/my-vault"
+        inboxPath="GTD/Inbox"
+        onInboxPathChange={vi.fn()}
+      />
+    )
+
+    expect(screen.getByText(/Full path:/i)).toBeInTheDocument()
+    expect(screen.getByText('/my-vault/GTD/Inbox')).toBeInTheDocument()
+  })
+
+  it('updates full path preview when inbox path changes', async () => {
+    render(
+      <SettingsModal
+        isOpen={true}
+        onClose={vi.fn()}
+        vaultPath="/vault"
+        inboxPath="Inbox"
+        onInboxPathChange={vi.fn()}
+      />
+    )
+
+    expect(screen.getByText('/vault/Inbox')).toBeInTheDocument()
+
+    const input = screen.getByLabelText(/inbox folder/i)
+    await userEvent.clear(input)
+    await userEvent.type(input, 'Projects/Notes')
+
+    expect(screen.getByText('/vault/Projects/Notes')).toBeInTheDocument()
+  })
 })
 
