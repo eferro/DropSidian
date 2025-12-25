@@ -16,8 +16,8 @@
 | H2 | Create note (Inbox) | ✅ Completed |
 | H3 | Edit + Save | ✅ Completed |
 | H4 | Wikilinks | ✅ Completed |
-| H5 | Attachments | ⬜ Not started |
-| H6 | Search | ⬜ Not started |
+| H5 | Attachments | ✅ Completed |
+| H6 | Search | 🔄 H6.1 Done |
 
 ---
 
