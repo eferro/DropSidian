@@ -39,11 +39,19 @@ vi.mock('../components/InboxNotesList', () => ({
     <div data-testid="inbox-notes-list">
       Inbox Notes List
       <button onClick={() => {
-        const event = new CustomEvent('inboxFileSelect', { 
-          detail: `${vaultPath}/${inboxPath}/note.md` 
+        const event = new CustomEvent('inboxFileSelect', {
+          detail: `${vaultPath}/${inboxPath}/note.md`
         })
         window.dispatchEvent(event)
       }}>Select File</button>
+    </div>
+  ),
+}))
+
+vi.mock('../components/NoteComposer', () => ({
+  default: ({ onCreateNote }: { onCreateNote: (title: string, body: string) => void }) => (
+    <div data-testid="note-composer">
+      <button onClick={() => onCreateNote('Test Note', 'Test body')}>Create Note</button>
     </div>
   ),
 }))
@@ -191,6 +199,26 @@ describe('Home', () => {
       expect(getCurrentAccount).toHaveBeenCalledWith('test-token')
     })
     expect(screen.getByRole('button', { name: /select vault/i })).toBeInTheDocument()
+  })
+
+  it('shows note composer after vault is selected', async () => {
+    vi.mocked(useAuth).mockReturnValue({
+      accessToken: 'test-token',
+      accountId: 'account-id',
+      isAuthenticated: true,
+      isLoading: false,
+      setTokens: vi.fn(),
+      logout: mockLogout,
+    })
+    const user = userEvent.setup()
+
+    render(<Home />)
+
+    await user.click(screen.getByRole('button', { name: /select vault/i }))
+
+    await waitFor(() => {
+      expect(screen.getByTestId('note-composer')).toBeInTheDocument()
+    })
   })
 })
 

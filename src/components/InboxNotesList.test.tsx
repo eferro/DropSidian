@@ -65,4 +65,32 @@ describe('InboxNotesList', () => {
       expect(screen.getByText(/no notes/i)).toBeInTheDocument()
     })
   })
+
+  it('refreshes when refreshKey changes', async () => {
+    const listSpy = vi.spyOn(dropboxClient, 'listInboxNotes').mockResolvedValue([
+      {
+        name: 'Note 1.md',
+        path_display: '/vault/Inbox/Note 1.md',
+        path_lower: '/vault/inbox/note 1.md',
+        id: 'id:1',
+        server_modified: '2024-01-15T10:00:00Z',
+      },
+    ])
+
+    const { rerender } = render(
+      <InboxNotesList vaultPath="/vault" inboxPath="Inbox" refreshKey={0} />
+    )
+
+    await waitFor(() => {
+      expect(screen.getByText('Note 1')).toBeInTheDocument()
+    })
+
+    expect(listSpy).toHaveBeenCalledTimes(1)
+
+    rerender(<InboxNotesList vaultPath="/vault" inboxPath="Inbox" refreshKey={1} />)
+
+    await waitFor(() => {
+      expect(listSpy).toHaveBeenCalledTimes(2)
+    })
+  })
 })

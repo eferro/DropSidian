@@ -6,9 +6,10 @@ import styles from './InboxNotesList.module.css'
 interface InboxNotesListProps {
   vaultPath: string
   inboxPath: string
+  refreshKey?: number
 }
 
-function InboxNotesList({ vaultPath, inboxPath }: InboxNotesListProps) {
+function InboxNotesList({ vaultPath, inboxPath, refreshKey }: InboxNotesListProps) {
   const { accessToken } = useAuth()
   const [notes, setNotes] = useState<InboxNote[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -21,7 +22,7 @@ function InboxNotesList({ vaultPath, inboxPath }: InboxNotesListProps) {
       .then(setNotes)
       .catch(() => {})
       .finally(() => setIsLoading(false))
-  }, [accessToken, vaultPath, inboxPath])
+  }, [accessToken, vaultPath, inboxPath, refreshKey])
 
   if (isLoading) {
     return <div className={styles.loading}>Loading...</div>
