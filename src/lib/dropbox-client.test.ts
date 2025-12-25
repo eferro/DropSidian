@@ -8,6 +8,7 @@ import {
   downloadFileWithMetadata,
   uploadFile,
   updateFile,
+  listInboxNotes,
 } from './dropbox-client'
 
 describe('getCurrentAccount', () => {
@@ -356,6 +357,78 @@ describe('uploadBinaryFile', () => {
 
     expect(result.name).toBe('photo.png')
     expect(result.path_display).toBe('/Vault/photo.png')
+  })
+})
+
+describe('listInboxNotes', () => {
+  beforeEach(() => {
+    vi.restoreAllMocks()
+  })
+
+  it('returns only markdown files sorted by server_modified desc', async () => {
+    const mockResponse = {
+      entries: [
+        {
+          '.tag': 'file',
+          name: 'note1.md',
+          path_lower: '/vault/inbox/note1.md',
+          path_display: '/Vault/Inbox/note1.md',
+          id: 'id:1',
+          server_modified: '2024-01-01T10:00:00Z',
+        },
+        {
+          '.tag': 'file',
+          name: 'image.png',
+          path_lower: '/vault/inbox/image.png',
+          path_display: '/Vault/Inbox/image.png',
+          id: 'id:2',
+          server_modified: '2024-01-02T10:00:00Z',
+        },
+        {
+          '.tag': 'file',
+          name: 'note2.md',
+          path_lower: '/vault/inbox/note2.md',
+          path_display: '/Vault/Inbox/note2.md',
+          id: 'id:3',
+          server_modified: '2024-01-03T10:00:00Z',
+        },
+      ],
+      cursor: '',
+      has_more: false,
+    }
+    vi.spyOn(global, 'fetch').mockResolvedValue(
+      new Response(JSON.stringify(mockResponse), { status: 200 })
+    )
+
+    const result = await listInboxNotes('token', '/Vault', 'Inbox')
+
+    expect(result).toHaveLength(2)
+    expect(result[0].name).toBe('note2.md')
+    expect(result[1].name).toBe('note1.md')
+  })
+
+  it('returns empty array when no markdown files exist', async () => {
+    const mockResponse = {
+      entries: [
+        {
+          '.tag': 'file',
+          name: 'image.png',
+          path_lower: '/vault/inbox/image.png',
+          path_display: '/Vault/Inbox/image.png',
+          id: 'id:1',
+          server_modified: '2024-01-01T10:00:00Z',
+        },
+      ],
+      cursor: '',
+      has_more: false,
+    }
+    vi.spyOn(global, 'fetch').mockResolvedValue(
+      new Response(JSON.stringify(mockResponse), { status: 200 })
+    )
+
+    const result = await listInboxNotes('token', '/Vault', 'Inbox')
+
+    expect(result).toHaveLength(0)
   })
 })
 

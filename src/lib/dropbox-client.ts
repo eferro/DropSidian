@@ -41,6 +41,7 @@ export interface DropboxEntry {
   path_lower: string
   path_display: string
   id: string
+  server_modified?: string
 }
 
 export interface ListFolderResponse {
@@ -278,5 +279,42 @@ export async function uploadBinaryFile(
 
   await assertResponseOk(response, 'Failed to upload file')
   return response.json()
+}
+
+export interface InboxNote {
+  name: string
+  path_display: string
+  path_lower: string
+  id: string
+  server_modified: string
+}
+
+export async function listInboxNotes(
+  accessToken: string,
+  vaultPath: string,
+  inboxPath: string
+): Promise<InboxNote[]> {
+  const fullInboxPath = `${vaultPath}/${inboxPath}`
+  const response = await listFolder(accessToken, fullInboxPath)
+
+  const markdownFiles = response.entries
+    .filter((entry): entry is DropboxEntry & { server_modified: string } =>
+      entry['.tag'] === 'file' &&
+      entry.name.endsWith('.md') &&
+      entry.server_modified !== undefined
+    )
+    .map((entry): InboxNote => ({
+      name: entry.name,
+      path_display: entry.path_display,
+      path_lower: entry.path_lower,
+      id: entry.id,
+      server_modified: entry.server_modified,
+    }))
+
+  markdownFiles.sort((a, b) => {
+    return new Date(b.server_modified).getTime() - new Date(a.server_modified).getTime()
+  })
+
+  return markdownFiles
 }
 
