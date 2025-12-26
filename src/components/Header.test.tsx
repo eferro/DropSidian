@@ -65,14 +65,14 @@ describe("Header", () => {
     expect(onLogout).toHaveBeenCalled();
   });
 
-  it("calls onSettings when settings button is clicked", async () => {
+  it("does not show settings button in dropdown menu", async () => {
     const user = { displayName: "John Doe", email: "john@example.com" };
-    const onSettings = vi.fn();
 
-    render(<Header user={user} onSettings={onSettings} />);
+    render(<Header user={user} />);
     await userEvent.click(screen.getByRole("button", { name: /user menu/i }));
-    await userEvent.click(screen.getByRole("button", { name: /settings/i }));
 
-    expect(onSettings).toHaveBeenCalled();
+    expect(
+      screen.queryByRole("button", { name: /settings/i }),
+    ).not.toBeInTheDocument();
   });
 });

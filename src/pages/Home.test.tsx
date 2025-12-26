@@ -22,13 +22,17 @@ vi.mock("../lib/dropbox-client", () => ({
   uploadFile: vi.fn(),
 }));
 
-vi.mock("../components/VaultSelector", () => ({
+vi.mock("../components/SetupWizard", () => ({
   default: ({
-    onVaultSelected,
+    onComplete,
   }: {
-    onVaultSelected: (path: string) => void;
+    onComplete: (vaultPath: string, inboxPath: string) => void;
   }) => (
-    <button onClick={() => onVaultSelected("/test-vault")}>Select Vault</button>
+    <div data-testid="setup-wizard">
+      <button onClick={() => onComplete("/test-vault", "Inbox")}>
+        Complete Setup
+      </button>
+    </div>
   ),
 }));
 
@@ -160,7 +164,7 @@ describe("Home", () => {
     ).toBeInTheDocument();
   });
 
-  it("shows authenticated view with Header and vault selector", async () => {
+  it("shows authenticated view with Header and setup wizard", async () => {
     vi.mocked(useAuth).mockReturnValue({
       accessToken: "test-token",
       accountId: "account-id",
@@ -186,9 +190,7 @@ describe("Home", () => {
         screen.getByRole("button", { name: /user menu/i }),
       ).toBeInTheDocument();
     });
-    expect(
-      screen.getByRole("button", { name: /select vault/i }),
-    ).toBeInTheDocument();
+    expect(screen.getByTestId("setup-wizard")).toBeInTheDocument();
   });
 
   it("calls logout when disconnect button is clicked in user menu", async () => {
@@ -224,7 +226,7 @@ describe("Home", () => {
     expect(mockLogout).toHaveBeenCalled();
   });
 
-  it("shows inbox notes list after vault is selected", async () => {
+  it("shows inbox notes list after setup is complete", async () => {
     vi.mocked(useAuth).mockReturnValue({
       accessToken: "test-token",
       accountId: "account-id",
@@ -237,7 +239,7 @@ describe("Home", () => {
 
     render(<Home />);
 
-    await user.click(screen.getByRole("button", { name: /select vault/i }));
+    await user.click(screen.getByRole("button", { name: /complete setup/i }));
 
     await waitFor(() => {
       expect(screen.getByTestId("inbox-notes-list")).toBeInTheDocument();
@@ -260,12 +262,10 @@ describe("Home", () => {
     await waitFor(() => {
       expect(getCurrentAccount).toHaveBeenCalledWith("test-token");
     });
-    expect(
-      screen.getByRole("button", { name: /select vault/i }),
-    ).toBeInTheDocument();
+    expect(screen.getByTestId("setup-wizard")).toBeInTheDocument();
   });
 
-  it("shows new note button after vault is selected", async () => {
+  it("shows new note button after setup is complete", async () => {
     vi.mocked(useAuth).mockReturnValue({
       accessToken: "test-token",
       accountId: "account-id",
@@ -278,7 +278,7 @@ describe("Home", () => {
 
     render(<Home />);
 
-    await user.click(screen.getByRole("button", { name: /select vault/i }));
+    await user.click(screen.getByRole("button", { name: /complete setup/i }));
 
     await waitFor(() => {
       expect(screen.getByTestId("new-note-button")).toBeInTheDocument();
@@ -298,7 +298,7 @@ describe("Home", () => {
 
     render(<Home />);
 
-    await user.click(screen.getByRole("button", { name: /select vault/i }));
+    await user.click(screen.getByRole("button", { name: /complete setup/i }));
 
     await waitFor(() => {
       expect(
@@ -323,7 +323,7 @@ describe("Home", () => {
 
     render(<Home />);
 
-    await user.click(screen.getByRole("button", { name: /select vault/i }));
+    await user.click(screen.getByRole("button", { name: /complete setup/i }));
 
     await waitFor(() => {
       expect(

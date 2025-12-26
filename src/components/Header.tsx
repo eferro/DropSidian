@@ -10,7 +10,6 @@ interface User {
 interface HeaderProps {
   user?: User;
   onLogout?: () => void;
-  onSettings?: () => void;
   currentViewMode?: ViewMode;
   onViewModeChange?: (mode: ViewMode) => void;
 }
@@ -18,7 +17,6 @@ interface HeaderProps {
 function Header({
   user,
   onLogout,
-  onSettings,
   currentViewMode,
   onViewModeChange,
 }: HeaderProps) {
@@ -69,13 +67,6 @@ function Header({
                 <p className={styles.userEmail}>{user.email}</p>
               </div>
               <div className={styles.menuActions}>
-                <button
-                  type="button"
-                  className={`${styles.menuButton} ${styles.settingsButton}`}
-                  onClick={onSettings}
-                >
-                  Settings
-                </button>
                 <button
                   type="button"
                   className={`${styles.menuButton} ${styles.disconnectButton}`}

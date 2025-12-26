@@ -143,10 +143,6 @@
   line-height: 1;
 }
 
-.settingsButton::before {
-  content: '⚙️';
-}
-
 .disconnectButton {
   color: var(--color-error);
 }
