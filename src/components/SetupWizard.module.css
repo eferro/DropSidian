@@ -1,54 +1,54 @@
 .wizard {
   max-width: 480px;
   margin: 2rem auto;
-  padding: 2rem;
-  background: var(--color-surface, #1e1e2e);
-  border-radius: 12px;
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
+  padding: var(--spacing-xl);
+  background: var(--color-bg-elevated);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  border: 1px solid var(--color-border);
 }
 
 .stepIndicator {
-  margin-bottom: 1.5rem;
+  margin-bottom: var(--spacing-lg);
 }
 
 .stepNumber {
   display: block;
   font-size: 0.875rem;
-  color: var(--color-text-muted, #a6adc8);
-  margin-bottom: 0.5rem;
+  color: var(--color-text-muted);
+  margin-bottom: var(--spacing-sm);
   font-weight: 500;
 }
 
 .progressBar {
   height: 6px;
-  background: var(--color-border, #313244);
-  border-radius: 3px;
+  background: var(--color-border);
+  border-radius: var(--radius-full);
   overflow: hidden;
 }
 
 .progressFill {
   height: 100%;
-  background: var(--color-primary, #89b4fa);
-  border-radius: 3px;
+  background: var(--color-accent);
+  border-radius: var(--radius-full);
   transition: width 0.3s ease;
 }
 
 .title {
   font-size: 1.5rem;
   font-weight: 600;
-  color: var(--color-text, #cdd6f4);
-  margin: 0 0 0.75rem 0;
+  color: var(--color-text-bright);
+  margin: 0 0 var(--spacing-sm) 0;
 }
 
 .description {
   font-size: 1rem;
-  color: var(--color-text-muted, #a6adc8);
-  margin: 0 0 1.5rem 0;
+  color: var(--color-text-muted);
+  margin: 0 0 var(--spacing-lg) 0;
   line-height: 1.5;
 }
 
 .description strong {
-  color: var(--color-primary, #89b4fa);
+  color: var(--color-accent);
   font-weight: 500;
 }
-
