@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { getVaultPath, storeVaultPath } from "../lib/vault-storage";
 import { getInboxPath, storeInboxPath } from "../lib/inbox-storage";
 import PathInput from "./PathInput";
+import styles from "./SetupWizard.module.css";
 
 type SetupStep = "vault" | "inbox" | "complete";
 
@@ -52,9 +53,17 @@ function SetupWizard({ onComplete }: SetupWizardProps) {
 
   if (step === "vault") {
     return (
-      <div>
-        <h2>Select your Obsidian vault</h2>
-        <p>Type or select your vault folder path in Dropbox.</p>
+      <div className={styles.wizard}>
+        <div className={styles.stepIndicator}>
+          <span className={styles.stepNumber}>Step 1 of 2</span>
+          <div className={styles.progressBar}>
+            <div className={styles.progressFill} style={{ width: "50%" }} />
+          </div>
+        </div>
+        <h2 className={styles.title}>📁 Select your Obsidian vault</h2>
+        <p className={styles.description}>
+          Choose the root folder of your Obsidian vault in Dropbox.
+        </p>
         <PathInput onSelect={handleVaultSelect} />
       </div>
     );
@@ -62,9 +71,18 @@ function SetupWizard({ onComplete }: SetupWizardProps) {
 
   if (step === "inbox") {
     return (
-      <div>
-        <h2>Select your inbox folder</h2>
-        <p>Type or select your inbox folder path inside the vault.</p>
+      <div className={styles.wizard}>
+        <div className={styles.stepIndicator}>
+          <span className={styles.stepNumber}>Step 2 of 2</span>
+          <div className={styles.progressBar}>
+            <div className={styles.progressFill} style={{ width: "100%" }} />
+          </div>
+        </div>
+        <h2 className={styles.title}>📥 Select your inbox folder</h2>
+        <p className={styles.description}>
+          Choose where new notes will be created inside{" "}
+          <strong>{vaultPath}</strong>
+        </p>
         <PathInput onSelect={handleInboxSelect} basePath={vaultPath || ""} />
       </div>
     );

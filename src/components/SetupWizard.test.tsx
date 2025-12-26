@@ -41,6 +41,15 @@ describe("SetupWizard", () => {
     expect(screen.getByTestId("path-input")).toBeInTheDocument();
   });
 
+  it("shows step indicator for vault step", () => {
+    vi.mocked(getVaultPath).mockReturnValue(null);
+    vi.mocked(getInboxPath).mockReturnValue(null);
+
+    render(<SetupWizard onComplete={() => {}} />);
+
+    expect(screen.getByText(/step 1.*2/i)).toBeInTheDocument();
+  });
+
   it("moves to inbox step after vault is selected", async () => {
     vi.mocked(getVaultPath).mockReturnValue(null);
     vi.mocked(getInboxPath).mockReturnValue(null);
@@ -65,6 +74,15 @@ describe("SetupWizard", () => {
     expect(
       screen.getByRole("heading", { name: /select.*inbox/i }),
     ).toBeInTheDocument();
+  });
+
+  it("shows step indicator for inbox step", () => {
+    vi.mocked(getVaultPath).mockReturnValue("/my-vault");
+    vi.mocked(getInboxPath).mockReturnValue(null);
+
+    render(<SetupWizard onComplete={() => {}} />);
+
+    expect(screen.getByText(/step 2.*2/i)).toBeInTheDocument();
   });
 
   it("calls onComplete when both vault and inbox are configured", () => {
