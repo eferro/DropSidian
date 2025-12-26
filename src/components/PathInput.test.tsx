@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, fireEvent } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import PathInput from "./PathInput";
 
@@ -248,6 +248,23 @@ describe("PathInput", () => {
     await waitFor(() => {
       expect(screen.getByText("Inbox")).toBeInTheDocument();
     });
+  });
+
+  it("prevents editing the basePath prefix", async () => {
+    vi.mocked(listFolder).mockResolvedValue({
+      entries: [],
+      cursor: "cursor",
+      has_more: false,
+    });
+
+    render(<PathInput onSelect={() => {}} basePath="/Vault" />);
+
+    const input = screen.getByPlaceholderText(/path/i);
+    expect(input).toHaveValue("/Vault/");
+
+    fireEvent.change(input, { target: { value: "/Other" } });
+
+    expect(input).toHaveValue("/Vault/");
   });
 });
 

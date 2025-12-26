@@ -29,10 +29,17 @@ function getSearchTerm(path: string): string {
 
 function PathInput({ onSelect, basePath = "" }: PathInputProps) {
   const { accessToken } = useAuth();
-  const initialValue = basePath ? `${basePath}/` : "";
-  const [value, setValue] = useState(initialValue);
+  const basePrefix = basePath ? `${basePath}/` : "";
+  const [value, setValue] = useState(basePrefix);
   const [suggestions, setSuggestions] = useState<DropboxEntry[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
+
+  function handleValueChange(newValue: string): void {
+    if (basePrefix && !newValue.startsWith(basePrefix)) {
+      return;
+    }
+    setValue(newValue);
+  }
 
   useEffect(() => {
     if (!accessToken) {
@@ -67,7 +74,7 @@ function PathInput({ onSelect, basePath = "" }: PathInputProps) {
           placeholder="Enter path..."
           value={value}
           onChange={(e) => {
-            setValue(e.target.value);
+            handleValueChange(e.target.value);
             setShowSuggestions(true);
           }}
           onFocus={() => setShowSuggestions(true)}
