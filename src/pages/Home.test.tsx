@@ -1,7 +1,9 @@
-import { describe, it, expect, beforeEach, vi } from "vitest";
+import { describe, it, expect, beforeEach, vi, afterEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import Home from "./Home";
+import { clearVaultPath } from "../lib/vault-storage";
+import { clearInboxPath } from "../lib/inbox-storage";
 
 const mockLogout = vi.fn();
 
@@ -129,6 +131,13 @@ import { getCurrentAccount } from "../lib/dropbox-client";
 describe("Home", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    clearVaultPath();
+    clearInboxPath();
+  });
+
+  afterEach(() => {
+    clearVaultPath();
+    clearInboxPath();
   });
 
   it("shows loading state when auth is loading", () => {
@@ -337,6 +346,42 @@ describe("Home", () => {
       expect(
         screen.getByRole("button", { name: /select file/i }),
       ).toBeInTheDocument();
+    });
+  });
+
+  it("shows setup wizard again when reconfigure is clicked", async () => {
+    vi.mocked(useAuth).mockReturnValue({
+      accessToken: "test-token",
+      accountId: "account-id",
+      isAuthenticated: true,
+      isLoading: false,
+      setTokens: vi.fn(),
+      logout: mockLogout,
+    });
+    vi.mocked(getCurrentAccount).mockResolvedValue({
+      account_id: "test-account-id",
+      email: "test@example.com",
+      name: {
+        display_name: "Test User",
+        given_name: "Test",
+        surname: "User",
+      },
+    });
+    const user = userEvent.setup();
+
+    render(<Home />);
+
+    await user.click(screen.getByRole("button", { name: /complete setup/i }));
+
+    await waitFor(() => {
+      expect(screen.getByTestId("inbox-notes-list")).toBeInTheDocument();
+    });
+
+    await user.click(screen.getByRole("button", { name: /user menu/i }));
+    await user.click(screen.getByRole("button", { name: /reconfigure/i }));
+
+    await waitFor(() => {
+      expect(screen.getByTestId("setup-wizard")).toBeInTheDocument();
     });
   });
 });

@@ -9,8 +9,8 @@ import { ViewMode } from "../components/ViewModeTabs";
 import FileList from "../components/FileList";
 import { useAuth } from "../context/AuthContext";
 import { getCurrentAccount, DropboxAccount } from "../lib/dropbox-client";
-import { getVaultPath } from "../lib/vault-storage";
-import { getInboxPath } from "../lib/inbox-storage";
+import { getVaultPath, clearVaultPath } from "../lib/vault-storage";
+import { getInboxPath, clearInboxPath } from "../lib/inbox-storage";
 
 function Home() {
   const { isAuthenticated, isLoading, logout, accessToken } = useAuth();
@@ -81,6 +81,13 @@ function Home() {
     setSelectedFile(null);
   }, []);
 
+  const handleReconfigure = useCallback(() => {
+    clearVaultPath();
+    clearInboxPath();
+    setVaultPath(null);
+    setInboxPath(null);
+  }, []);
+
   if (isLoading) {
     return (
       <main>
@@ -111,6 +118,7 @@ function Home() {
       <Header
         user={user}
         onLogout={logout}
+        onReconfigure={needsSetup ? undefined : handleReconfigure}
         currentViewMode={needsSetup ? undefined : viewMode}
         onViewModeChange={needsSetup ? undefined : handleModeChange}
       />

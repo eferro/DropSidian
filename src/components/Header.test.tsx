@@ -75,4 +75,17 @@ describe("Header", () => {
       screen.queryByRole("button", { name: /settings/i }),
     ).not.toBeInTheDocument();
   });
+
+  it("calls onReconfigure when reconfigure button is clicked", async () => {
+    const user = { displayName: "John Doe", email: "john@example.com" };
+    const onReconfigure = vi.fn();
+
+    render(<Header user={user} onReconfigure={onReconfigure} />);
+    await userEvent.click(screen.getByRole("button", { name: /user menu/i }));
+    await userEvent.click(
+      screen.getByRole("button", { name: /reconfigure/i }),
+    );
+
+    expect(onReconfigure).toHaveBeenCalled();
+  });
 });
