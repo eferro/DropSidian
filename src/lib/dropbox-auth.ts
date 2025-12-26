@@ -154,3 +154,18 @@ export async function revokeToken(accessToken: string): Promise<void> {
     },
   });
 }
+
+export function clearAllOAuthData(): void {
+  debugLog("clearAllOAuthData - clearing all OAuth-related storage", {
+    codeVerifierExists: !!localStorage.getItem(CODE_VERIFIER_KEY),
+    oauthStateExists: !!localStorage.getItem(OAUTH_STATE_KEY),
+  });
+
+  clearCodeVerifier();
+  clearOAuthState();
+
+  debugLog("clearAllOAuthData - complete", {
+    codeVerifierExists: !!localStorage.getItem(CODE_VERIFIER_KEY),
+    oauthStateExists: !!localStorage.getItem(OAUTH_STATE_KEY),
+  });
+}

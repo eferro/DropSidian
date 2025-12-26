@@ -5,6 +5,35 @@
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>DropSidian</title>
+    <script>
+      // Capture OAuth params BEFORE any React/Vite code loads
+      // This runs synchronously before the module script below
+      (function() {
+        console.log("[DropSidian] index.html script - Initial URL:", window.location.href);
+        var searchParams = new URLSearchParams(window.location.search);
+        var code = searchParams.get("code");
+        var state = searchParams.get("state");
+        var error = searchParams.get("error");
+        var errorDescription = searchParams.get("error_description");
+        
+        console.log("[DropSidian] index.html script - OAuth params:", { 
+          hasCode: !!code, 
+          hasState: !!state, 
+          hasError: !!error 
+        });
+        
+        if (code || error) {
+          console.log("[DropSidian] index.html script - Storing OAuth response");
+          sessionStorage.setItem(
+            "dropsidian_oauth_response",
+            JSON.stringify({ code: code, state: state, error: error, errorDescription: errorDescription })
+          );
+          // Clean the URL and redirect to the hash-based callback route
+          window.history.replaceState({}, "", "/");
+          window.location.hash = "#/callback";
+        }
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

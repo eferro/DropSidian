@@ -1,7 +1,11 @@
 export function createLogger(isDev: boolean) {
   return function debugLog(message: string, data?: unknown): void {
     if (isDev) {
-      console.log(`[DropSidian] ${message}`, data);
+      if (data !== undefined) {
+        console.log(`[DropSidian] ${message}`, JSON.stringify(data, null, 2));
+      } else {
+        console.log(`[DropSidian] ${message}`);
+      }
     }
   };
 }

@@ -23,7 +23,7 @@ vi.mock("../context/AuthContext", () => ({
 vi.mock("../lib/dropbox-auth", () => ({
   validateOAuthState: vi.fn(),
   getStoredCodeVerifier: vi.fn(),
-  getStoredOAuthState: vi.fn(),
+  getStoredOAuthState: vi.fn(() => "stored-state"),  // Default to having state
   exchangeCodeForTokens: vi.fn(),
   clearOAuthState: vi.fn(),
 }));
@@ -46,6 +46,7 @@ function renderWithRouter(searchParams: string) {
 describe("Callback", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    sessionStorage.clear();
   });
 
   it("shows error when no authorization code is received", async () => {
@@ -83,12 +84,20 @@ describe("Callback", () => {
   it("exchanges code for tokens on valid callback", async () => {
     vi.mocked(validateOAuthState).mockReturnValue(true);
     vi.mocked(getStoredCodeVerifier).mockReturnValue("verifier");
+    mockSetTokens.mockResolvedValue(undefined);  // setTokens is now async
     vi.mocked(exchangeCodeForTokens).mockResolvedValue({
       access_token: "access-123",
       refresh_token: "refresh-123",
       expires_in: 14400,
       token_type: "bearer",
       account_id: "dbid:account-123",
+    });
+
+    // Mock window.location.replace since we now use it instead of navigate
+    const mockReplace = vi.fn();
+    Object.defineProperty(window, "location", {
+      value: { replace: mockReplace },
+      writable: true,
     });
 
     renderWithRouter("?code=auth-code&state=valid-state");
@@ -103,7 +112,7 @@ describe("Callback", () => {
         "refresh-123",
         "dbid:account-123",
       );
-      expect(mockNavigate).toHaveBeenCalledWith("/", { replace: true });
+      expect(mockReplace).toHaveBeenCalledWith("/");
     });
   });
 
@@ -113,6 +122,9 @@ describe("Callback", () => {
     vi.mocked(exchangeCodeForTokens).mockRejectedValue(
       new Error("Token exchange failed"),
     );
+    
+    // Clear sessionStorage to ensure no oauth_complete flag
+    sessionStorage.clear();
 
     renderWithRouter("?code=auth-code&state=valid-state");
 
@@ -140,6 +152,9 @@ describe("Callback", () => {
       () => {},
     ) as Promise<TokenResponse>;
     vi.mocked(exchangeCodeForTokens).mockReturnValue(pendingPromise);
+    
+    // Clear sessionStorage to ensure clean state
+    sessionStorage.clear();
 
     const { rerender } = renderWithRouter("?code=auth-code&state=valid-state");
 
@@ -155,6 +170,7 @@ describe("Callback", () => {
       </MemoryRouter>,
     );
 
+    // Due to isExchangingRef, should still only be called once
     await waitFor(() => {
       expect(exchangeCodeForTokens).toHaveBeenCalledTimes(1);
     });

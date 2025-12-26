@@ -11,6 +11,7 @@ vi.mock("../lib/token-storage", () => ({
 vi.mock("../lib/dropbox-auth", () => ({
   refreshAccessToken: vi.fn(),
   revokeToken: vi.fn(),
+  clearAllOAuthData: vi.fn(),
 }));
 
 import {

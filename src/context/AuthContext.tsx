@@ -11,7 +11,14 @@ import {
   clearRefreshToken,
   getRefreshToken,
 } from "../lib/token-storage";
-import { refreshAccessToken, revokeToken } from "../lib/dropbox-auth";
+import { clearVaultPath } from "../lib/vault-storage";
+import { clearInboxPath } from "../lib/inbox-storage";
+import { debugLog } from "../lib/logger";
+import {
+  refreshAccessToken,
+  revokeToken,
+  clearAllOAuthData,
+} from "../lib/dropbox-auth";
 
 interface AuthState {
   accessToken: string | null;
@@ -25,7 +32,7 @@ interface AuthContextType extends AuthState {
     accessToken: string,
     refreshToken: string,
     accountId: string,
-  ) => void;
+  ) => Promise<void>;
   logout: () => Promise<void>;
 }
 
@@ -67,8 +74,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
   }, []);
 
   const setTokens = useCallback(
-    (accessToken: string, refreshToken: string, accountId: string): void => {
-      storeRefreshToken(refreshToken);
+    async (accessToken: string, refreshToken: string, accountId: string): Promise<void> => {
+      await storeRefreshToken(refreshToken);
       setAuthState({
         accessToken,
         accountId,
@@ -80,10 +87,21 @@ export function AuthProvider({ children }: AuthProviderProps) {
   );
 
   async function logout(): Promise<void> {
+    debugLog("logout - starting complete cleanup", {
+      hasAccessToken: !!authState.accessToken,
+    });
+
     if (authState.accessToken) {
       await revokeToken(authState.accessToken).catch(() => {});
     }
+
     clearRefreshToken();
+    clearAllOAuthData();
+    clearVaultPath();
+    clearInboxPath();
+
+    debugLog("logout - cleanup complete");
+
     setAuthState({
       accessToken: null,
       accountId: null,

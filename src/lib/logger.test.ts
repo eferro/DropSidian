@@ -18,24 +18,22 @@ describe("createLogger", () => {
     expect(console.log).not.toHaveBeenCalled();
   });
 
-  it("should log when isDev is true", () => {
+  it("should log with JSON stringified data when isDev is true", () => {
     const debugLog = createLogger(true);
 
     debugLog("test message", { data: "value" });
 
-    expect(console.log).toHaveBeenCalledWith("[DropSidian] test message", {
-      data: "value",
-    });
+    expect(console.log).toHaveBeenCalledWith(
+      "[DropSidian] test message",
+      JSON.stringify({ data: "value" }, null, 2)
+    );
   });
 
-  it("should handle undefined data parameter", () => {
+  it("should handle undefined data parameter (no second argument)", () => {
     const debugLog = createLogger(true);
 
     debugLog("message only");
 
-    expect(console.log).toHaveBeenCalledWith(
-      "[DropSidian] message only",
-      undefined,
-    );
+    expect(console.log).toHaveBeenCalledWith("[DropSidian] message only");
   });
 });

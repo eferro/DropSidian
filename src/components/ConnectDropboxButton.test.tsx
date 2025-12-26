@@ -5,6 +5,7 @@ import ConnectDropboxButton from "./ConnectDropboxButton";
 
 vi.mock("../lib/dropbox-auth", () => ({
   buildAuthUrl: vi.fn(),
+  getStoredOAuthState: vi.fn(() => "test-state-12345678"),
 }));
 
 import { buildAuthUrl } from "../lib/dropbox-auth";

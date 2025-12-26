@@ -16,30 +16,45 @@ export function OAuthRedirectHandler() {
     const storedVerifier = getStoredCodeVerifier();
 
     debugLog("OAuthRedirectHandler - checking URL", {
+      fullHref: window.location.href,
       search: window.location.search,
       hash: window.location.hash,
       pathname: window.location.pathname,
       storedState: storedState ? `${storedState.substring(0, 8)}...` : null,
       storedVerifier: storedVerifier ? "exists" : null,
-      sessionStorageKeys: Object.keys(sessionStorage),
+      localStorageKeys: Object.keys(localStorage),
     });
 
     const params = new URLSearchParams(window.location.search);
     const code = params.get("code");
+    const state = params.get("state");
     const error = params.get("error");
     const errorDescription = params.get("error_description");
 
     if (error) {
-      debugLog("OAuth error in URL", { error, errorDescription });
+      debugLog("OAuthRedirectHandler - OAuth error in URL", {
+        error,
+        errorDescription,
+      });
     }
 
     if (code) {
-      debugLog("OAuth code received, redirecting to callback", {
+      debugLog("OAuthRedirectHandler - OAuth code received", {
+        codeLength: code.length,
+        receivedState: state ? `${state.substring(0, 8)}...` : null,
         storedState: storedState ? `${storedState.substring(0, 8)}...` : null,
+        stateMatch: state === storedState,
         storedVerifier: storedVerifier ? "exists" : null,
+        fullSearchParams: window.location.search,
       });
+
       setCallbackParams(window.location.search);
       window.history.replaceState({}, "", window.location.pathname);
+
+      debugLog("OAuthRedirectHandler - redirecting to callback", {
+        callbackRoute: `/callback${window.location.search}`,
+      });
+
       setShouldRedirect(true);
     }
   }, []);
