@@ -8,6 +8,8 @@ import styles from "./FileList.module.css";
 
 interface FileListProps {
   vaultPath: string;
+  currentPath: string;
+  onCurrentPathChange: (path: string) => void;
   onFileSelect: (path: string) => void;
   onFilesLoaded?: (filePaths: string[]) => void;
   contentIndex?: ContentIndex;
@@ -36,6 +38,8 @@ function getCurrentFolderName(path: string, vaultPath: string): string {
 
 function FileList({
   vaultPath,
+  currentPath,
+  onCurrentPathChange,
   onFileSelect,
   onFilesLoaded,
   contentIndex,
@@ -45,13 +49,12 @@ function FileList({
   const [allMarkdownPaths, setAllMarkdownPaths] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
-  const [currentPath, setCurrentPath] = useState(vaultPath);
   const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
-    setCurrentPath(vaultPath);
+    onCurrentPathChange(vaultPath);
     setSearchQuery("");
-  }, [vaultPath]);
+  }, [vaultPath, onCurrentPathChange]);
 
   useEffect(() => {
     if (!accessToken || !vaultPath) return;
@@ -124,11 +127,11 @@ function FileList({
     : [];
 
   function handleFolderClick(folderPath: string) {
-    setCurrentPath(folderPath);
+    onCurrentPathChange(folderPath);
   }
 
   function handleBackClick() {
-    setCurrentPath(getParentPath(currentPath));
+    onCurrentPathChange(getParentPath(currentPath));
   }
 
   return (

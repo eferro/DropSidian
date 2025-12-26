@@ -26,6 +26,7 @@ function Home() {
   );
   const [refreshKey, setRefreshKey] = useState(0);
   const [viewMode, setViewMode] = useState<ViewMode>("inbox");
+  const [currentVaultPath, setCurrentVaultPath] = useState<string | null>(null);
 
   useEffect(() => {
     if (!accessToken) return;
@@ -49,6 +50,7 @@ function Home() {
 
   const handleVaultSelected = useCallback((path: string) => {
     setVaultPath(path);
+    setCurrentVaultPath(path);
     setSelectedFile(null);
     setShowVaultSelector(false);
     setIsSettingsOpen(false);
@@ -144,6 +146,8 @@ function Home() {
               {viewMode === "vault" && (
                 <FileList
                   vaultPath={vaultPath}
+                  currentPath={currentVaultPath ?? vaultPath}
+                  onCurrentPathChange={setCurrentVaultPath}
                   onFileSelect={handleFileSelect}
                 />
               )}

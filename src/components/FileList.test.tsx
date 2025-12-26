@@ -30,6 +30,7 @@ function mockListFolderResponse(entries: DropboxEntry[]): ListFolderResponse {
 
 describe("FileList", () => {
   const mockOnFileSelect = vi.fn();
+  const mockOnCurrentPathChange = vi.fn();
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -48,7 +49,14 @@ describe("FileList", () => {
   it("shows loading state initially", () => {
     vi.mocked(listFolder).mockReturnValue(new Promise(() => {}));
 
-    render(<FileList vaultPath="/vault" onFileSelect={mockOnFileSelect} />);
+    render(
+      <FileList
+        vaultPath="/vault"
+        currentPath="/vault"
+        onCurrentPathChange={mockOnCurrentPathChange}
+        onFileSelect={mockOnFileSelect}
+      />,
+    );
 
     expect(screen.getByText("Loading files...")).toBeInTheDocument();
   });
@@ -73,7 +81,14 @@ describe("FileList", () => {
       ]),
     );
 
-    render(<FileList vaultPath="/vault" onFileSelect={mockOnFileSelect} />);
+    render(
+      <FileList
+        vaultPath="/vault"
+        currentPath="/vault"
+        onCurrentPathChange={mockOnCurrentPathChange}
+        onFileSelect={mockOnFileSelect}
+      />,
+    );
 
     await waitFor(() => {
       expect(screen.getByText("note")).toBeInTheDocument();
@@ -109,7 +124,14 @@ describe("FileList", () => {
       ]),
     );
 
-    render(<FileList vaultPath="/vault" onFileSelect={mockOnFileSelect} />);
+    render(
+      <FileList
+        vaultPath="/vault"
+        currentPath="/vault"
+        onCurrentPathChange={mockOnCurrentPathChange}
+        onFileSelect={mockOnFileSelect}
+      />,
+    );
 
     await waitFor(() => {
       expect(screen.getByText("note")).toBeInTheDocument();
@@ -132,7 +154,14 @@ describe("FileList", () => {
       ]),
     );
 
-    render(<FileList vaultPath="/vault" onFileSelect={mockOnFileSelect} />);
+    render(
+      <FileList
+        vaultPath="/vault"
+        currentPath="/vault"
+        onCurrentPathChange={mockOnCurrentPathChange}
+        onFileSelect={mockOnFileSelect}
+      />,
+    );
 
     await waitFor(() => {
       expect(
@@ -155,7 +184,14 @@ describe("FileList", () => {
     );
     const user = userEvent.setup();
 
-    render(<FileList vaultPath="/vault" onFileSelect={mockOnFileSelect} />);
+    render(
+      <FileList
+        vaultPath="/vault"
+        currentPath="/vault"
+        onCurrentPathChange={mockOnCurrentPathChange}
+        onFileSelect={mockOnFileSelect}
+      />,
+    );
 
     await waitFor(() => {
       expect(screen.getByText("note")).toBeInTheDocument();
@@ -169,7 +205,14 @@ describe("FileList", () => {
   it("shows error on failure", async () => {
     vi.mocked(listFolder).mockRejectedValue(new Error("API Error"));
 
-    render(<FileList vaultPath="/vault" onFileSelect={mockOnFileSelect} />);
+    render(
+      <FileList
+        vaultPath="/vault"
+        currentPath="/vault"
+        onCurrentPathChange={mockOnCurrentPathChange}
+        onFileSelect={mockOnFileSelect}
+      />,
+    );
 
     await waitFor(() => {
       expect(screen.getByText("Error: API Error")).toBeInTheDocument();
@@ -186,7 +229,14 @@ describe("FileList", () => {
       logout: vi.fn(),
     });
 
-    render(<FileList vaultPath="/vault" onFileSelect={mockOnFileSelect} />);
+    render(
+      <FileList
+        vaultPath="/vault"
+        currentPath="/vault"
+        onCurrentPathChange={mockOnCurrentPathChange}
+        onFileSelect={mockOnFileSelect}
+      />,
+    );
 
     await waitFor(() => {
       expect(screen.queryByText("Loading files...")).not.toBeInTheDocument();
@@ -214,7 +264,14 @@ describe("FileList", () => {
       ]),
     );
 
-    render(<FileList vaultPath="/Vault" onFileSelect={mockOnFileSelect} />);
+    render(
+      <FileList
+        vaultPath="/Vault"
+        currentPath="/Vault"
+        onCurrentPathChange={mockOnCurrentPathChange}
+        onFileSelect={mockOnFileSelect}
+      />,
+    );
 
     await waitFor(() => {
       expect(screen.getByText("Projects")).toBeInTheDocument();
@@ -223,32 +280,28 @@ describe("FileList", () => {
   });
 
   it("navigates into folder on click", async () => {
-    vi.mocked(listFolder)
-      .mockResolvedValueOnce(
-        mockListFolderResponse([
-          {
-            ".tag": "folder",
-            name: "Projects",
-            path_lower: "/vault/projects",
-            path_display: "/Vault/Projects",
-            id: "id:1",
-          },
-        ]),
-      )
-      .mockResolvedValueOnce(
-        mockListFolderResponse([
-          {
-            ".tag": "file",
-            name: "project-note.md",
-            path_lower: "/vault/projects/project-note.md",
-            path_display: "/Vault/Projects/project-note.md",
-            id: "id:2",
-          },
-        ]),
-      );
+    const onCurrentPathChange = vi.fn();
+    vi.mocked(listFolder).mockResolvedValue(
+      mockListFolderResponse([
+        {
+          ".tag": "folder",
+          name: "Projects",
+          path_lower: "/vault/projects",
+          path_display: "/Vault/Projects",
+          id: "id:1",
+        },
+      ]),
+    );
     const user = userEvent.setup();
 
-    render(<FileList vaultPath="/Vault" onFileSelect={mockOnFileSelect} />);
+    render(
+      <FileList
+        vaultPath="/Vault"
+        currentPath="/Vault"
+        onCurrentPathChange={onCurrentPathChange}
+        onFileSelect={mockOnFileSelect}
+      />,
+    );
 
     await waitFor(() => {
       expect(screen.getByText("Projects")).toBeInTheDocument();
@@ -256,47 +309,41 @@ describe("FileList", () => {
 
     await user.click(screen.getByText("Projects"));
 
-    await waitFor(() => {
-      expect(screen.getByText("project-note")).toBeInTheDocument();
-    });
-    expect(listFolder).toHaveBeenCalledWith("test-token", "/Vault/Projects");
+    expect(onCurrentPathChange).toHaveBeenCalledWith("/Vault/Projects");
   });
 
   it("shows back button when navigated into a subdirectory", async () => {
-    vi.mocked(listFolder)
-      .mockResolvedValueOnce(
-        mockListFolderResponse([
-          {
-            ".tag": "folder",
-            name: "Projects",
-            path_lower: "/vault/projects",
-            path_display: "/Vault/Projects",
-            id: "id:1",
-          },
-        ]),
-      )
-      .mockResolvedValueOnce(
-        mockListFolderResponse([
-          {
-            ".tag": "file",
-            name: "note.md",
-            path_lower: "/vault/projects/note.md",
-            path_display: "/Vault/Projects/note.md",
-            id: "id:2",
-          },
-        ]),
-      );
-    const user = userEvent.setup();
+    vi.mocked(listFolder).mockResolvedValue(
+      mockListFolderResponse([
+        {
+          ".tag": "file",
+          name: "note.md",
+          path_lower: "/vault/projects/note.md",
+          path_display: "/Vault/Projects/note.md",
+          id: "id:2",
+        },
+      ]),
+    );
 
-    render(<FileList vaultPath="/Vault" onFileSelect={mockOnFileSelect} />);
-
-    await waitFor(() => {
-      expect(screen.getByText("Projects")).toBeInTheDocument();
-    });
+    const { rerender } = render(
+      <FileList
+        vaultPath="/Vault"
+        currentPath="/Vault"
+        onCurrentPathChange={mockOnCurrentPathChange}
+        onFileSelect={mockOnFileSelect}
+      />,
+    );
 
     expect(screen.queryByText("← Back")).not.toBeInTheDocument();
 
-    await user.click(screen.getByText("Projects"));
+    rerender(
+      <FileList
+        vaultPath="/Vault"
+        currentPath="/Vault/Projects"
+        onCurrentPathChange={mockOnCurrentPathChange}
+        onFileSelect={mockOnFileSelect}
+      />,
+    );
 
     await waitFor(() => {
       expect(screen.getByText("← Back")).toBeInTheDocument();
@@ -304,49 +351,28 @@ describe("FileList", () => {
   });
 
   it("navigates back to parent folder when clicking back button", async () => {
-    vi.mocked(listFolder)
-      .mockResolvedValueOnce(
-        mockListFolderResponse([
-          {
-            ".tag": "folder",
-            name: "Projects",
-            path_lower: "/vault/projects",
-            path_display: "/Vault/Projects",
-            id: "id:1",
-          },
-        ]),
-      )
-      .mockResolvedValueOnce(
-        mockListFolderResponse([
-          {
-            ".tag": "file",
-            name: "note.md",
-            path_lower: "/vault/projects/note.md",
-            path_display: "/Vault/Projects/note.md",
-            id: "id:2",
-          },
-        ]),
-      )
-      .mockResolvedValueOnce(
-        mockListFolderResponse([
-          {
-            ".tag": "folder",
-            name: "Projects",
-            path_lower: "/vault/projects",
-            path_display: "/Vault/Projects",
-            id: "id:1",
-          },
-        ]),
-      );
+    const onCurrentPathChange = vi.fn();
+    vi.mocked(listFolder).mockResolvedValue(
+      mockListFolderResponse([
+        {
+          ".tag": "file",
+          name: "note.md",
+          path_lower: "/vault/projects/note.md",
+          path_display: "/Vault/Projects/note.md",
+          id: "id:2",
+        },
+      ]),
+    );
     const user = userEvent.setup();
 
-    render(<FileList vaultPath="/Vault" onFileSelect={mockOnFileSelect} />);
-
-    await waitFor(() => {
-      expect(screen.getByText("Projects")).toBeInTheDocument();
-    });
-
-    await user.click(screen.getByText("Projects"));
+    render(
+      <FileList
+        vaultPath="/Vault"
+        currentPath="/Vault/Projects"
+        onCurrentPathChange={onCurrentPathChange}
+        onFileSelect={mockOnFileSelect}
+      />,
+    );
 
     await waitFor(() => {
       expect(screen.getByText("← Back")).toBeInTheDocument();
@@ -354,10 +380,7 @@ describe("FileList", () => {
 
     await user.click(screen.getByText("← Back"));
 
-    await waitFor(() => {
-      expect(screen.getByText("Projects")).toBeInTheDocument();
-    });
-    expect(screen.queryByText("← Back")).not.toBeInTheDocument();
+    expect(onCurrentPathChange).toHaveBeenCalledWith("/Vault");
   });
 
   it("calls onFilesLoaded with markdown file paths when files are loaded", async () => {
@@ -400,6 +423,8 @@ describe("FileList", () => {
     render(
       <FileList
         vaultPath="/Vault"
+        currentPath="/Vault"
+        onCurrentPathChange={mockOnCurrentPathChange}
         onFileSelect={mockOnFileSelect}
         onFilesLoaded={onFilesLoaded}
       />,
@@ -447,7 +472,14 @@ describe("FileList", () => {
       ]),
     );
 
-    render(<FileList vaultPath="/vault" onFileSelect={mockOnFileSelect} />);
+    render(
+      <FileList
+        vaultPath="/vault"
+        currentPath="/vault"
+        onCurrentPathChange={mockOnCurrentPathChange}
+        onFileSelect={mockOnFileSelect}
+      />,
+    );
 
     await waitFor(() => {
       expect(screen.getByText("visible")).toBeInTheDocument();
