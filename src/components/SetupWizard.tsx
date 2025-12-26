@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { getVaultPath, storeVaultPath } from "../lib/vault-storage";
 import { getInboxPath, storeInboxPath } from "../lib/inbox-storage";
-import FolderBrowser from "./FolderBrowser";
+import PathInput from "./PathInput";
 
 type SetupStep = "vault" | "inbox" | "complete";
 
@@ -54,8 +54,8 @@ function SetupWizard({ onComplete }: SetupWizardProps) {
     return (
       <div>
         <h2>Select your Obsidian vault</h2>
-        <p>Navigate to and select your vault folder in Dropbox.</p>
-        <FolderBrowser onSelect={handleVaultSelect} />
+        <p>Type or select your vault folder path in Dropbox.</p>
+        <PathInput onSelect={handleVaultSelect} />
       </div>
     );
   }
@@ -64,8 +64,8 @@ function SetupWizard({ onComplete }: SetupWizardProps) {
     return (
       <div>
         <h2>Select your inbox folder</h2>
-        <p>Navigate to and select your inbox folder inside the vault.</p>
-        <FolderBrowser onSelect={handleInboxSelect} basePath={vaultPath || ""} />
+        <p>Type or select your inbox folder path inside the vault.</p>
+        <PathInput onSelect={handleInboxSelect} basePath={vaultPath || ""} />
       </div>
     );
   }

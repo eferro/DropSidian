@@ -13,10 +13,10 @@ vi.mock("../lib/inbox-storage", () => ({
   storeInboxPath: vi.fn(),
 }));
 
-vi.mock("./FolderBrowser", () => ({
+vi.mock("./PathInput", () => ({
   default: ({ onSelect }: { onSelect: (path: string) => void }) => (
-    <div data-testid="folder-browser">
-      <button onClick={() => onSelect("/selected-path")}>Select Folder</button>
+    <div data-testid="path-input">
+      <button onClick={() => onSelect("/selected-path")}>Select</button>
     </div>
   ),
 }));
@@ -38,7 +38,7 @@ describe("SetupWizard", () => {
     expect(
       screen.getByRole("heading", { name: /select.*vault/i }),
     ).toBeInTheDocument();
-    expect(screen.getByTestId("folder-browser")).toBeInTheDocument();
+    expect(screen.getByTestId("path-input")).toBeInTheDocument();
   });
 
   it("moves to inbox step after vault is selected", async () => {
@@ -48,7 +48,7 @@ describe("SetupWizard", () => {
     const user = userEvent.setup();
     render(<SetupWizard onComplete={() => {}} />);
 
-    await user.click(screen.getByRole("button", { name: /select folder/i }));
+    await user.click(screen.getByRole("button", { name: /select/i }));
 
     expect(storeVaultPath).toHaveBeenCalledWith("/selected-path");
     expect(
@@ -85,7 +85,7 @@ describe("SetupWizard", () => {
     const user = userEvent.setup();
     render(<SetupWizard onComplete={onComplete} />);
 
-    await user.click(screen.getByRole("button", { name: /select folder/i }));
+    await user.click(screen.getByRole("button", { name: /select/i }));
 
     expect(storeInboxPath).toHaveBeenCalled();
     expect(onComplete).toHaveBeenCalled();
@@ -99,7 +99,7 @@ describe("SetupWizard", () => {
     const user = userEvent.setup();
     render(<SetupWizard onComplete={onComplete} />);
 
-    await user.click(screen.getByRole("button", { name: /select folder/i }));
+    await user.click(screen.getByRole("button", { name: /select/i }));
 
     expect(storeInboxPath).toHaveBeenCalledWith("selected-path");
     expect(onComplete).toHaveBeenCalledWith("/my-vault", "selected-path");
