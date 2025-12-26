@@ -21,19 +21,19 @@ const CODE_VERIFIER_KEY = "dropbox_code_verifier";
 const OAUTH_STATE_KEY = "dropbox_oauth_state";
 
 export function storeCodeVerifier(verifier: string): void {
-  sessionStorage.setItem(CODE_VERIFIER_KEY, verifier);
+  localStorage.setItem(CODE_VERIFIER_KEY, verifier);
 }
 
 export function storeOAuthState(state: string): void {
-  sessionStorage.setItem(OAUTH_STATE_KEY, state);
+  localStorage.setItem(OAUTH_STATE_KEY, state);
 }
 
 export function getStoredOAuthState(): string | null {
-  return sessionStorage.getItem(OAUTH_STATE_KEY);
+  return localStorage.getItem(OAUTH_STATE_KEY);
 }
 
 export function clearOAuthState(): void {
-  sessionStorage.removeItem(OAUTH_STATE_KEY);
+  localStorage.removeItem(OAUTH_STATE_KEY);
 }
 
 export function validateOAuthState(state: string): boolean {
@@ -42,11 +42,11 @@ export function validateOAuthState(state: string): boolean {
 }
 
 export function getStoredCodeVerifier(): string | null {
-  return sessionStorage.getItem(CODE_VERIFIER_KEY);
+  return localStorage.getItem(CODE_VERIFIER_KEY);
 }
 
 export function clearCodeVerifier(): void {
-  sessionStorage.removeItem(CODE_VERIFIER_KEY);
+  localStorage.removeItem(CODE_VERIFIER_KEY);
 }
 
 export async function buildAuthUrl(): Promise<string> {

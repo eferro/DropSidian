@@ -15,7 +15,7 @@ import {
 
 describe("OAuth state management", () => {
   beforeEach(() => {
-    sessionStorage.clear();
+    localStorage.clear();
   });
 
   it("stores and retrieves OAuth state", () => {
@@ -39,7 +39,7 @@ describe("OAuth state management", () => {
 
 describe("code verifier management", () => {
   beforeEach(() => {
-    sessionStorage.clear();
+    localStorage.clear();
   });
 
   it("stores and retrieves code verifier", () => {
@@ -63,7 +63,7 @@ describe("code verifier management", () => {
 
 describe("buildAuthUrl", () => {
   beforeEach(() => {
-    sessionStorage.clear();
+    localStorage.clear();
   });
 
   it("includes state parameter in URL and stores it", async () => {
@@ -80,7 +80,7 @@ describe("buildAuthUrl", () => {
 
 describe("validateOAuthState", () => {
   beforeEach(() => {
-    sessionStorage.clear();
+    localStorage.clear();
   });
 
   it("returns true when state matches stored state", () => {
@@ -118,7 +118,7 @@ describe("validateOAuthState", () => {
 
 describe("exchangeCodeForTokens", () => {
   beforeEach(() => {
-    sessionStorage.clear();
+    localStorage.clear();
     vi.restoreAllMocks();
   });
 
