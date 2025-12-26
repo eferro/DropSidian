@@ -5,16 +5,23 @@ import Home from "./pages/Home";
 import Callback from "./pages/Callback";
 import NotFound from "./pages/NotFound";
 import { debugLog } from "./lib/logger";
+import { getStoredOAuthState, getStoredCodeVerifier } from "./lib/dropbox-auth";
 
 export function OAuthRedirectHandler() {
   const [shouldRedirect, setShouldRedirect] = useState(false);
   const [callbackParams, setCallbackParams] = useState("");
 
   useEffect(() => {
+    const storedState = getStoredOAuthState();
+    const storedVerifier = getStoredCodeVerifier();
+
     debugLog("OAuthRedirectHandler - checking URL", {
       search: window.location.search,
       hash: window.location.hash,
       pathname: window.location.pathname,
+      storedState: storedState ? `${storedState.substring(0, 8)}...` : null,
+      storedVerifier: storedVerifier ? "exists" : null,
+      sessionStorageKeys: Object.keys(sessionStorage),
     });
 
     const params = new URLSearchParams(window.location.search);
@@ -27,7 +34,10 @@ export function OAuthRedirectHandler() {
     }
 
     if (code) {
-      debugLog("OAuth code received, redirecting to callback");
+      debugLog("OAuth code received, redirecting to callback", {
+        storedState: storedState ? `${storedState.substring(0, 8)}...` : null,
+        storedVerifier: storedVerifier ? "exists" : null,
+      });
       setCallbackParams(window.location.search);
       window.history.replaceState({}, "", window.location.pathname);
       setShouldRedirect(true);

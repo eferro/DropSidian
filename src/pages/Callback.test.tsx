@@ -23,6 +23,7 @@ vi.mock("../context/AuthContext", () => ({
 vi.mock("../lib/dropbox-auth", () => ({
   validateOAuthState: vi.fn(),
   getStoredCodeVerifier: vi.fn(),
+  getStoredOAuthState: vi.fn(),
   exchangeCodeForTokens: vi.fn(),
   clearOAuthState: vi.fn(),
 }));

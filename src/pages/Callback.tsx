@@ -5,6 +5,7 @@ import {
   getStoredCodeVerifier,
   validateOAuthState,
   clearOAuthState,
+  getStoredOAuthState,
 } from "../lib/dropbox-auth";
 import { useAuth } from "../context/AuthContext";
 import { debugLog } from "../lib/logger";
@@ -47,8 +48,19 @@ function Callback() {
       return;
     }
 
+    const storedState = getStoredOAuthState();
+    debugLog("Callback - State comparison", {
+      receivedState: state,
+      storedState: storedState,
+      match: state === storedState,
+    });
+
     if (!state || !validateOAuthState(state)) {
-      debugLog("Callback - Invalid state", { receivedState: state });
+      debugLog("Callback - Invalid state", {
+        receivedState: state,
+        storedState: storedState,
+        sessionStorageKeys: Object.keys(sessionStorage),
+      });
       setError("Invalid state parameter - possible CSRF attack");
       setIsProcessing(false);
       return;
