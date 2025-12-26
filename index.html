@@ -28,8 +28,13 @@
             "dropsidian_oauth_response",
             JSON.stringify({ code: code, state: state, error: error, errorDescription: errorDescription })
           );
+          // Detect base path: on GitHub Pages it's /DropSidian/, on localhost it's /
+          // The script tag src path gives us a hint about the base
+          var basePath = window.location.pathname.split('/').filter(Boolean)[0];
+          var baseUrl = basePath ? '/' + basePath + '/' : '/';
+          console.log("[DropSidian] index.html script - Detected base URL:", baseUrl);
           // Clean the URL and redirect to the hash-based callback route
-          window.history.replaceState({}, "", "/");
+          window.history.replaceState({}, "", baseUrl);
           window.location.hash = "#/callback";
         }
       })();

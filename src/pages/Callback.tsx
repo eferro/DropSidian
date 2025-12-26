@@ -74,7 +74,7 @@ function Callback() {
       debugLog("Callback - OAuth already completed, redirecting to home");
       if (!hasRedirectedRef.current) {
         hasRedirectedRef.current = true;
-        window.location.replace("/");
+        window.location.replace(import.meta.env.BASE_URL);
       }
       return;
     }
@@ -183,7 +183,7 @@ function Callback() {
         await setTokens(tokens.access_token, tokens.refresh_token, tokens.account_id);
         debugLog("Callback - Tokens stored, navigating to home page");
         hasRedirectedRef.current = true;
-        window.location.replace("/");
+        window.location.replace(import.meta.env.BASE_URL);
       })
       .catch((err) => {
         debugLog("Callback - Token exchange FAILED", {
@@ -204,7 +204,7 @@ function Callback() {
       <main>
         <h1>Authentication Error</h1>
         <p>{error}</p>
-        <a href="/">Go back home</a>
+        <a href={import.meta.env.BASE_URL}>Go back home</a>
       </main>
     );
   }
