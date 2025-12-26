@@ -30,6 +30,16 @@
   max-height: 300px;
   display: flex;
   flex-direction: column;
+  position: relative;
+}
+
+.checkbox {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  cursor: pointer;
+  width: 18px;
+  height: 18px;
 }
 
 .card:hover {
@@ -45,6 +55,12 @@
 
 .card:active {
   transform: translateY(0);
+}
+
+.cardSelected {
+  border-color: var(--color-accent);
+  background: var(--color-bg-elevated);
+  box-shadow: 0 0 0 2px var(--color-accent);
 }
 
 .cardTitle {
@@ -88,4 +104,32 @@
   font-size: 0.75rem;
   color: var(--color-text-muted);
   margin: 0;
+}
+
+.deleteButton {
+  position: fixed;
+  bottom: 2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #dc3545;
+  color: white;
+  border: none;
+  border-radius: 24px;
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  z-index: 1000;
+  transition: all 0.2s ease;
+}
+
+.deleteButton:hover {
+  background: #c82333;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+  transform: translateX(-50%) translateY(-2px);
+}
+
+.deleteButton:active {
+  transform: translateX(-50%) translateY(0);
 }

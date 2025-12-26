@@ -173,6 +173,7 @@ function Home() {
                     vaultPath={vaultPath}
                     inboxPath={inboxPath}
                     refreshKey={refreshKey}
+                    onDelete={() => setRefreshKey((k) => k + 1)}
                   />
                 </>
               )}

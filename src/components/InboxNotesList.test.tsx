@@ -3,6 +3,7 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import InboxNotesList from "./InboxNotesList";
 import * as dropboxClient from "../lib/dropbox-client";
+import styles from "./InboxNotesList.module.css";
 
 vi.mock("../context/AuthContext", () => ({
   useAuth: () => ({
@@ -169,5 +170,160 @@ describe("InboxNotesList", () => {
     });
 
     expect(screen.getByText("This is the preview content")).toBeInTheDocument();
+  });
+
+  it("renders a checkbox for each note card", async () => {
+    vi.spyOn(dropboxClient, "listInboxNotesWithContent").mockResolvedValue([
+      {
+        name: "Note 1.md",
+        path_display: "/vault/Inbox/Note 1.md",
+        path_lower: "/vault/inbox/note 1.md",
+        id: "id:1",
+        server_modified: "2024-01-15T10:00:00Z",
+      },
+      {
+        name: "Note 2.md",
+        path_display: "/vault/Inbox/Note 2.md",
+        path_lower: "/vault/inbox/note 2.md",
+        id: "id:2",
+        server_modified: "2024-01-14T10:00:00Z",
+      },
+    ]);
+
+    render(<InboxNotesList vaultPath="/vault" inboxPath="Inbox" />);
+
+    await waitFor(() => {
+      expect(screen.getByText("Note 1")).toBeInTheDocument();
+    });
+
+    const checkboxes = screen.getAllByRole("checkbox");
+    expect(checkboxes).toHaveLength(2);
+  });
+
+  it("applies selected class when checkbox is checked", async () => {
+    vi.spyOn(dropboxClient, "listInboxNotesWithContent").mockResolvedValue([
+      {
+        name: "Note 1.md",
+        path_display: "/vault/Inbox/Note 1.md",
+        path_lower: "/vault/inbox/note 1.md",
+        id: "id:1",
+        server_modified: "2024-01-15T10:00:00Z",
+      },
+    ]);
+
+    const user = userEvent.setup();
+    render(<InboxNotesList vaultPath="/vault" inboxPath="Inbox" />);
+
+    await waitFor(() => {
+      expect(screen.getByText("Note 1")).toBeInTheDocument();
+    });
+
+    const card = screen.getByRole("button", { name: /note 1/i });
+    expect(card).not.toHaveClass(styles.cardSelected);
+
+    const checkbox = screen.getByRole("checkbox");
+    await user.click(checkbox);
+
+    expect(card).toHaveClass(styles.cardSelected);
+  });
+
+  it("shows delete button when notes are selected", async () => {
+    vi.spyOn(dropboxClient, "listInboxNotesWithContent").mockResolvedValue([
+      {
+        name: "Note 1.md",
+        path_display: "/vault/Inbox/Note 1.md",
+        path_lower: "/vault/inbox/note 1.md",
+        id: "id:1",
+        server_modified: "2024-01-15T10:00:00Z",
+      },
+      {
+        name: "Note 2.md",
+        path_display: "/vault/Inbox/Note 2.md",
+        path_lower: "/vault/inbox/note 2.md",
+        id: "id:2",
+        server_modified: "2024-01-14T10:00:00Z",
+      },
+    ]);
+
+    const user = userEvent.setup();
+    render(<InboxNotesList vaultPath="/vault" inboxPath="Inbox" />);
+
+    await waitFor(() => {
+      expect(screen.getByText("Note 1")).toBeInTheDocument();
+    });
+
+    expect(screen.queryByText(/delete selected/i)).not.toBeInTheDocument();
+
+    const checkboxes = screen.getAllByRole("checkbox");
+    await user.click(checkboxes[0]);
+
+    expect(screen.getByText("Delete selected (1)")).toBeInTheDocument();
+
+    await user.click(checkboxes[1]);
+
+    expect(screen.getByText("Delete selected (2)")).toBeInTheDocument();
+  });
+
+  it("deletes selected notes when delete button is clicked", async () => {
+    vi.spyOn(dropboxClient, "listInboxNotesWithContent").mockResolvedValue([
+      {
+        name: "Note 1.md",
+        path_display: "/vault/Inbox/Note 1.md",
+        path_lower: "/vault/inbox/note 1.md",
+        id: "id:1",
+        server_modified: "2024-01-15T10:00:00Z",
+      },
+      {
+        name: "Note 2.md",
+        path_display: "/vault/Inbox/Note 2.md",
+        path_lower: "/vault/inbox/note 2.md",
+        id: "id:2",
+        server_modified: "2024-01-14T10:00:00Z",
+      },
+    ]);
+
+    const confirmSpy = vi.spyOn(window, "confirm").mockReturnValue(true);
+    const deleteSpy = vi
+      .spyOn(dropboxClient, "deleteFile")
+      .mockResolvedValue();
+    const onDeleteMock = vi.fn();
+
+    const user = userEvent.setup();
+    render(
+      <InboxNotesList
+        vaultPath="/vault"
+        inboxPath="Inbox"
+        onDelete={onDeleteMock}
+      />,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText("Note 1")).toBeInTheDocument();
+    });
+
+    const checkboxes = screen.getAllByRole("checkbox");
+    await user.click(checkboxes[0]);
+    await user.click(checkboxes[1]);
+
+    const deleteButton = screen.getByText("Delete selected (2)");
+    await user.click(deleteButton);
+
+    expect(confirmSpy).toHaveBeenCalledWith(
+      "Delete 2 note(s)? This cannot be undone.",
+    );
+    expect(deleteSpy).toHaveBeenCalledTimes(2);
+    expect(deleteSpy).toHaveBeenCalledWith(
+      "test-token",
+      "/vault/Inbox/Note 1.md",
+    );
+    expect(deleteSpy).toHaveBeenCalledWith(
+      "test-token",
+      "/vault/Inbox/Note 2.md",
+    );
+    expect(onDeleteMock).toHaveBeenCalledTimes(1);
+
+    await waitFor(() => {
+      expect(screen.queryByText(/delete selected/i)).not.toBeInTheDocument();
+    });
   });
 });

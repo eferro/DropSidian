@@ -16,3 +16,4 @@ function NewNoteButton({ onClick }: NewNoteButtonProps) {
 
 export default NewNoteButton;
 
+
