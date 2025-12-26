@@ -3,6 +3,7 @@ import {
   useContext,
   useState,
   useEffect,
+  useCallback,
   ReactNode,
 } from "react";
 import {
@@ -65,19 +66,18 @@ export function AuthProvider({ children }: AuthProviderProps) {
       });
   }, []);
 
-  function setTokens(
-    accessToken: string,
-    refreshToken: string,
-    accountId: string,
-  ): void {
-    storeRefreshToken(refreshToken);
-    setAuthState({
-      accessToken,
-      accountId,
-      isAuthenticated: true,
-      isLoading: false,
-    });
-  }
+  const setTokens = useCallback(
+    (accessToken: string, refreshToken: string, accountId: string): void => {
+      storeRefreshToken(refreshToken);
+      setAuthState({
+        accessToken,
+        accountId,
+        isAuthenticated: true,
+        isLoading: false,
+      });
+    },
+    [],
+  );
 
   async function logout(): Promise<void> {
     if (authState.accessToken) {
