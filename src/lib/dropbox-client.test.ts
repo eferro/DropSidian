@@ -618,6 +618,63 @@ describe("listInboxNotesWithContent", () => {
   });
 });
 
+describe("moveFile", () => {
+  beforeEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it("moves file from source to destination path", async () => {
+    const mockResponse = {
+      metadata: {
+        ".tag": "file",
+        name: "new-name.md",
+        path_lower: "/vault/inbox/new-name.md",
+        path_display: "/Vault/Inbox/new-name.md",
+        id: "id:abc123",
+      },
+    };
+    const fetchSpy = vi
+      .spyOn(global, "fetch")
+      .mockResolvedValue(
+        new Response(JSON.stringify(mockResponse), { status: 200 }),
+      );
+
+    const { moveFile } = await import("./dropbox-client");
+    const result = await moveFile(
+      "token",
+      "/Vault/Inbox/old-name.md",
+      "/Vault/Inbox/new-name.md",
+    );
+
+    expect(fetchSpy).toHaveBeenCalledWith(
+      "https://api.dropboxapi.com/2/files/move_v2",
+      expect.objectContaining({
+        method: "POST",
+        headers: expect.objectContaining({
+          Authorization: "Bearer token",
+          "Content-Type": "application/json",
+        }),
+        body: JSON.stringify({
+          from_path: "/Vault/Inbox/old-name.md",
+          to_path: "/Vault/Inbox/new-name.md",
+        }),
+      }),
+    );
+    expect(result.path_display).toBe("/Vault/Inbox/new-name.md");
+  });
+
+  it("throws error on API failure", async () => {
+    vi.spyOn(global, "fetch").mockResolvedValue(
+      new Response("Path not found", { status: 409 }),
+    );
+
+    const { moveFile } = await import("./dropbox-client");
+    await expect(
+      moveFile("token", "/invalid/old.md", "/invalid/new.md"),
+    ).rejects.toThrow("Failed to move file: Path not found");
+  });
+});
+
 describe("deleteFile", () => {
   beforeEach(() => {
     vi.restoreAllMocks();

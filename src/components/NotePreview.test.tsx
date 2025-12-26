@@ -13,6 +13,7 @@ vi.mock("../lib/dropbox-client", () => ({
   uploadFile: vi.fn(),
   uploadBinaryFile: vi.fn(),
   deleteFile: vi.fn(),
+  moveFile: vi.fn(),
 }));
 
 vi.mock("react-markdown", () => ({
@@ -72,6 +73,7 @@ import {
   uploadFile,
   uploadBinaryFile,
   deleteFile,
+  moveFile,
 } from "../lib/dropbox-client";
 
 function mockFileResponse(content: string, rev = "rev-123") {
@@ -202,7 +204,11 @@ describe("NotePreview", () => {
 
     await user.click(screen.getByRole("button", { name: /edit/i }));
 
-    expect(screen.getByRole("textbox")).toHaveValue("# Content");
+    const textareas = screen.getAllByRole("textbox");
+    const contentTextarea = textareas.find(
+      (el) => el.tagName.toLowerCase() === "textarea",
+    );
+    expect(contentTextarea).toHaveValue("# Content");
     expect(screen.getByRole("button", { name: /save/i })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /cancel/i })).toBeInTheDocument();
   });
@@ -225,12 +231,18 @@ describe("NotePreview", () => {
     });
 
     await user.click(screen.getByRole("button", { name: /edit/i }));
-    await user.clear(screen.getByRole("textbox"));
-    await user.type(screen.getByRole("textbox"), "# New");
+    const textareas = screen.getAllByRole("textbox");
+    const contentTextarea = textareas.find(
+      (el) => el.tagName.toLowerCase() === "textarea",
+    ) as HTMLTextAreaElement;
+    await user.clear(contentTextarea);
+    await user.type(contentTextarea, "# New");
     await user.click(screen.getByRole("button", { name: /save/i }));
 
     await waitFor(() => {
-      expect(screen.queryByRole("textbox")).not.toBeInTheDocument();
+      expect(
+        screen.queryByRole("textbox", { name: "" }),
+      ).not.toBeInTheDocument();
     });
     expect(updateFile).toHaveBeenCalledWith(
       "test-token",
@@ -325,8 +337,11 @@ describe("NotePreview", () => {
     await user.click(screen.getByRole("button", { name: /edit/i }));
     await user.click(screen.getByTestId("attachment-uploader"));
 
-    const textarea = screen.getByRole("textbox") as HTMLTextAreaElement;
-    expect(textarea.value).toContain("![[photo.png]]");
+    const textareas = screen.getAllByRole("textbox");
+    const contentTextarea = textareas.find(
+      (el) => el.tagName.toLowerCase() === "textarea",
+    ) as HTMLTextAreaElement;
+    expect(contentTextarea.value).toContain("![[photo.png]]");
   });
 
   it("uploads pasted image and inserts embed syntax", async () => {
@@ -349,7 +364,10 @@ describe("NotePreview", () => {
 
     await user.click(screen.getByRole("button", { name: /edit/i }));
 
-    const textarea = screen.getByRole("textbox");
+    const textareas = screen.getAllByRole("textbox");
+    const contentTextarea = textareas.find(
+      (el) => el.tagName.toLowerCase() === "textarea",
+    ) as HTMLTextAreaElement;
     const mockFile = new File(["image data"], "screenshot.png", {
       type: "image/png",
     });
@@ -359,7 +377,7 @@ describe("NotePreview", () => {
       getAsFile: () => mockFile,
     };
 
-    fireEvent.paste(textarea, {
+    fireEvent.paste(contentTextarea, {
       clipboardData: {
         items: [mockItem],
       },
@@ -374,7 +392,10 @@ describe("NotePreview", () => {
     });
 
     await waitFor(() => {
-      const ta = screen.getByRole("textbox") as HTMLTextAreaElement;
+      const tas = screen.getAllByRole("textbox");
+      const ta = tas.find(
+        (el) => el.tagName.toLowerCase() === "textarea",
+      ) as HTMLTextAreaElement;
       expect(ta.value).toMatch(/!\[\[Pasted image \d{14}\.png\]\]/);
     });
   });
@@ -530,5 +551,70 @@ describe("NotePreview", () => {
     expect(
       screen.queryByRole("button", { name: /edit/i }),
     ).not.toBeInTheDocument();
+  });
+
+  it("shows editable title input in edit mode", async () => {
+    vi.mocked(downloadFileWithMetadata).mockResolvedValue(
+      mockFileResponse("# Content"),
+    );
+    const user = userEvent.setup();
+
+    render(<NotePreview filePath="/vault/my-note.md" onClose={mockOnClose} />);
+
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: /edit/i })).toBeInTheDocument();
+    });
+
+    await user.click(screen.getByRole("button", { name: /edit/i }));
+
+    const titleInput = screen.getByPlaceholderText("Note title");
+    expect(titleInput).toBeInTheDocument();
+    expect(titleInput).toHaveValue("my-note");
+  });
+
+  it("renames file when title is changed and saved", async () => {
+    vi.mocked(downloadFileWithMetadata).mockResolvedValue(
+      mockFileResponse("# Content", "rev-1"),
+    );
+    vi.mocked(moveFile).mockResolvedValue({
+      name: "new-title.md",
+      path_display: "/vault/new-title.md",
+      path_lower: "/vault/new-title.md",
+      id: "id:123",
+    });
+    vi.mocked(updateFile).mockResolvedValue({
+      name: "new-title.md",
+      path_display: "/vault/new-title.md",
+      rev: "rev-2",
+    });
+    const user = userEvent.setup();
+    const onRename = vi.fn();
+
+    render(
+      <NotePreview
+        filePath="/vault/old-title.md"
+        onClose={mockOnClose}
+        onRename={onRename}
+      />,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: /edit/i })).toBeInTheDocument();
+    });
+
+    await user.click(screen.getByRole("button", { name: /edit/i }));
+    const titleInput = screen.getByPlaceholderText("Note title");
+    await user.clear(titleInput);
+    await user.type(titleInput, "new-title");
+    await user.click(screen.getByRole("button", { name: /save/i }));
+
+    await waitFor(() => {
+      expect(moveFile).toHaveBeenCalledWith(
+        "test-token",
+        "/vault/old-title.md",
+        "/vault/new-title.md",
+      );
+    });
+    expect(onRename).toHaveBeenCalledWith("/vault/new-title.md");
   });
 });

@@ -7,6 +7,7 @@ import {
   updateFile,
   uploadFile,
   deleteFile,
+  moveFile,
 } from "../lib/dropbox-client";
 import { generateFilename } from "../lib/filename-utils";
 import { useAuth } from "../context/AuthContext";
@@ -28,6 +29,7 @@ interface NotePreviewProps {
   startInEditMode?: boolean;
   onDelete?: () => void;
   onCreateNote?: (path: string) => void;
+  onRename?: (newPath: string) => void;
 }
 
 function NotePreview({
@@ -41,11 +43,13 @@ function NotePreview({
   startInEditMode = false,
   onDelete,
   onCreateNote,
+  onRename,
 }: NotePreviewProps) {
   const { accessToken } = useAuth();
   const isNewNote = filePath === null;
   const [content, setContent] = useState<string | null>(null);
   const [editContent, setEditContent] = useState<string>("");
+  const [editTitle, setEditTitle] = useState<string>("");
   const [rev, setRev] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(!isNewNote);
@@ -106,11 +110,29 @@ function NotePreview({
         }
       } else {
         if (!rev) return;
+
+        const currentFileName = filePath.split("/").pop() ?? "";
+        const currentTitle = removeExtension(currentFileName);
+        const titleChanged = editTitle !== currentTitle;
+
+        let currentPath = filePath;
+        const currentRev = rev;
+
+        if (titleChanged && editTitle.trim()) {
+          const directory = filePath.substring(0, filePath.lastIndexOf("/"));
+          const newPath = `${directory}/${editTitle}.md`;
+          const moveResult = await moveFile(accessToken, filePath, newPath);
+          currentPath = moveResult.path_display;
+          if (onRename) {
+            onRename(currentPath);
+          }
+        }
+
         const result = await updateFile(
           accessToken,
-          filePath,
+          currentPath,
           editContent,
-          rev,
+          currentRev,
         );
         setContent(editContent);
         setRev(result.rev);
@@ -129,15 +151,19 @@ function NotePreview({
     accessToken,
     filePath,
     editContent,
+    editTitle,
     rev,
     isNewNote,
     vaultPath,
     inboxPath,
     onCreateNote,
+    onRename,
   ]);
 
   const handleEdit = () => {
     setEditContent(content ?? "");
+    const currentFileName = filePath ? filePath.split("/").pop() ?? "" : "";
+    setEditTitle(removeExtension(currentFileName));
     setIsEditing(true);
   };
 
@@ -233,9 +259,19 @@ function NotePreview({
       <div className={styles.container}>
         <div className={styles.contentWrapper}>
           <div className={styles.header}>
-            <h2 className={styles.title}>
-              {isNewNote ? "New Note" : removeExtension(fileName)}
-            </h2>
+            {isEditing && !isNewNote ? (
+              <input
+                type="text"
+                className={styles.titleInput}
+                value={editTitle}
+                onChange={(e) => setEditTitle(e.target.value)}
+                placeholder="Note title"
+              />
+            ) : (
+              <h2 className={styles.title}>
+                {isNewNote ? "New Note" : removeExtension(fileName)}
+              </h2>
+            )}
             <div className={styles.actions}>
               <button
                 type="button"

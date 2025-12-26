@@ -246,6 +246,32 @@ export async function updateFile(
   return response.json();
 }
 
+export interface MoveFileResponse {
+  name: string;
+  path_display: string;
+  path_lower: string;
+  id: string;
+}
+
+export async function moveFile(
+  accessToken: string,
+  fromPath: string,
+  toPath: string,
+): Promise<MoveFileResponse> {
+  const response = await fetch("https://api.dropboxapi.com/2/files/move_v2", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ from_path: fromPath, to_path: toPath }),
+  });
+
+  await assertResponseOk(response, "Failed to move file");
+  const data = await response.json();
+  return data.metadata;
+}
+
 export async function deleteFile(
   accessToken: string,
   path: string,

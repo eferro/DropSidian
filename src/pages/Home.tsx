@@ -87,6 +87,11 @@ function Home() {
     setIsCreatingNote(false);
   }, []);
 
+  const handleNoteRenamed = useCallback((newPath: string) => {
+    setSelectedFile(newPath);
+    setRefreshKey((k) => k + 1);
+  }, []);
+
   const handleFileSelect = useCallback((path: string) => {
     setSelectedFile(path);
   }, []);
@@ -197,6 +202,7 @@ function Home() {
               startInEditMode={isNewNote}
               onDelete={() => setRefreshKey((k) => k + 1)}
               onCreateNote={handleNoteCreated}
+              onRename={handleNoteRenamed}
             />
           )}
         </>
