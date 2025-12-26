@@ -81,7 +81,7 @@ describe("PathInput", () => {
     expect(screen.queryByText(".hidden")).not.toBeInTheDocument();
   });
 
-  it("updates input when clicking a suggestion", async () => {
+  it("updates input with trailing slash when clicking a suggestion", async () => {
     vi.mocked(listFolder).mockResolvedValue({
       entries: [
         {
@@ -108,7 +108,7 @@ describe("PathInput", () => {
 
     await user.click(screen.getByText("Documents"));
 
-    expect(input).toHaveValue("/Documents");
+    expect(input).toHaveValue("/Documents/");
   });
 
   it("calls onSelect when clicking select button", async () => {

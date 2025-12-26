@@ -82,7 +82,10 @@ function PathInput({ onSelect, basePath = "" }: PathInputProps) {
         <button
           type="button"
           className={styles.selectButton}
-          onClick={() => onSelect(value)}
+          onClick={() => {
+            const cleanPath = value.endsWith("/") ? value.slice(0, -1) : value;
+            onSelect(cleanPath);
+          }}
         >
           Select
         </button>
@@ -95,7 +98,7 @@ function PathInput({ onSelect, basePath = "" }: PathInputProps) {
                 type="button"
                 className={styles.suggestionItem}
                 onClick={() => {
-                  setValue(folder.path_display);
+                  setValue(`${folder.path_display}/`);
                   setShowSuggestions(false);
                 }}
               >
