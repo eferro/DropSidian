@@ -4,7 +4,7 @@
 
 ## What is DropSidian?
 
-DropSidian is a **web-based Obsidian client** that connects directly to your Dropbox-stored vault. It's a lightweight, frontend-only application hosted on GitHub Pages — no servers, no backend, just your browser and your notes.
+DropSidian is a **web-based Obsidian client** that connects directly to your Dropbox-stored vault. It's a lightweight, frontend-only application — no servers, no backend, just your browser and your notes.
 
 ## The Problem
 
@@ -26,16 +26,18 @@ DropSidian gives you **instant access to your Obsidian vault** from any browser:
 - ✅ **Attach files** — Add images and PDFs to your notes
 - ✅ **Obsidian-compatible** — Wikilinks (`[[Note]]`) and embeds (`![[image.png]]`) work as expected
 
-## Key Features
+## Features
 
 | Feature | Description |
 |---------|-------------|
 | 🔐 **Secure Auth** | OAuth 2.0 with PKCE — no passwords stored, no backend needed |
 | 💾 **Remember Me** | Stay logged in across sessions |
-| 📂 **Your Vault** | Select any Dropbox folder as your vault root |
+| 📂 **Vault Selection** | Select any Dropbox folder as your vault root |
 | 🔗 **Wikilinks** | Navigate between notes using Obsidian's link syntax |
 | 🔍 **Search** | Find notes by title or content |
 | 📎 **Attachments** | Upload images and PDFs alongside your notes |
+| 📝 **Markdown** | Full GitHub Flavored Markdown support |
+| 🖼️ **Image Embeds** | View embedded images directly in your notes |
 
 ## How It Works
 
@@ -47,10 +49,10 @@ That's it. Your notes stay in Dropbox. Obsidian on your desktop sees all changes
 
 ## Privacy & Security
 
-- **Frontend-only**: No server ever sees your data
-- **Your Dropbox**: Files stay in your account
-- **OAuth PKCE**: Industry-standard secure authentication
-- **Open source**: Inspect the code yourself
+- **Frontend-only** — No server ever sees your data
+- **Your Dropbox** — Files stay in your account
+- **OAuth PKCE** — Industry-standard secure authentication
+- **Open source** — Inspect the code yourself
 
 ## Getting Started
 
@@ -63,4 +65,3 @@ For development setup and contribution guidelines, see the [Development Guide](d
 ## License
 
 MIT
-
