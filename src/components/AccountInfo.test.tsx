@@ -99,3 +99,4 @@ describe("AccountInfo", () => {
     expect(container.firstChild).toBeNull();
   });
 });
+
