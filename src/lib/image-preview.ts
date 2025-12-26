@@ -17,7 +17,7 @@ export function extractImageReferences(content: string): string[] {
 export async function getImagePreviewUrl(
   accessToken: string,
   vaultPath: string,
-  filename: string
+  filename: string,
 ): Promise<string> {
   const fullPath = `${vaultPath}/${filename}`;
   const cacheKey = fullPath;

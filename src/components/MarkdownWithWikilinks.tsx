@@ -184,7 +184,10 @@ function MarkdownWithWikilinks({
 
         if (segment.content.trim()) {
           return (
-            <ReactMarkdown key={index} remarkPlugins={[remarkGfm, remarkBreaks]}>
+            <ReactMarkdown
+              key={index}
+              remarkPlugins={[remarkGfm, remarkBreaks]}
+            >
               {segment.content}
             </ReactMarkdown>
           );

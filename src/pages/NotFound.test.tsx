@@ -25,4 +25,3 @@ describe("NotFound", () => {
     expect(link).toHaveAttribute("href", "/");
   });
 });
-

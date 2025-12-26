@@ -11,4 +11,3 @@ export function getVaultPath(): string | null {
 export function clearVaultPath(): void {
   localStorage.removeItem(VAULT_PATH_KEY);
 }
-

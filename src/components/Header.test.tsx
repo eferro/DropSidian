@@ -5,12 +5,7 @@ import Header from "./Header";
 
 describe("Header", () => {
   it("displays navigation tabs when view mode props are provided", () => {
-    render(
-      <Header
-        currentViewMode="inbox"
-        onViewModeChange={() => {}}
-      />,
-    );
+    render(<Header currentViewMode="inbox" onViewModeChange={() => {}} />);
 
     expect(screen.getByRole("button", { name: /inbox/i })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /vault/i })).toBeInTheDocument();
@@ -31,10 +26,7 @@ describe("Header", () => {
     const onViewModeChange = vi.fn();
 
     render(
-      <Header
-        currentViewMode="inbox"
-        onViewModeChange={onViewModeChange}
-      />,
+      <Header currentViewMode="inbox" onViewModeChange={onViewModeChange} />,
     );
 
     await userEvent.click(screen.getByRole("button", { name: /vault/i }));

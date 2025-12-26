@@ -61,4 +61,3 @@ function VaultSelector({ onVaultSelected }: VaultSelectorProps) {
 }
 
 export default VaultSelector;
-

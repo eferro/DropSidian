@@ -75,11 +75,11 @@ function MarkdownPreview({
           const imageUrl = await getImagePreviewUrl(
             accessToken,
             noteDir,
-            imageRef
+            imageRef,
           );
           processed = processed.replace(
             `![[${imageRef}]]`,
-            `![${imageRef}](${imageUrl})`
+            `![${imageRef}](${imageUrl})`,
           );
         } catch (error) {
           console.error(`Failed to load image ${imageRef}:`, error);

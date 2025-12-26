@@ -15,7 +15,7 @@ export function clearContentCache(): void {
 export function generateCacheKey(
   content: string,
   vaultPath: string,
-  notePath?: string
+  notePath?: string,
 ): string {
   const path = notePath || vaultPath;
   return `${path}:${content.substring(0, 100)}`;

@@ -18,4 +18,3 @@ function SearchInput({ value, onChange }: SearchInputProps) {
 }
 
 export default SearchInput;
-

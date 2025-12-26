@@ -19,7 +19,7 @@ describe("MarkdownPreview", () => {
   it("converts wikilink images to img tags", async () => {
     const content = "Text with image ![[test.png]] here";
     vi.spyOn(imagePreview, "getImagePreviewUrl").mockResolvedValue(
-      "https://example.com/test.png"
+      "https://example.com/test.png",
     );
 
     render(
@@ -29,7 +29,7 @@ describe("MarkdownPreview", () => {
         accessToken="test-token"
         vaultPath="/vault"
         notePath="/vault/inbox/note.md"
-      />
+      />,
     );
 
     await waitFor(() => {
@@ -39,7 +39,7 @@ describe("MarkdownPreview", () => {
       expect(imagePreview.getImagePreviewUrl).toHaveBeenCalledWith(
         "test-token",
         "/vault/inbox",
-        "test.png"
+        "test.png",
       );
     });
   });
@@ -49,6 +49,8 @@ describe("MarkdownPreview", () => {
 
     render(<MarkdownPreview content={content} maxHeight={200} />);
 
-    expect(screen.getByText(/Text with image !\[\[test\.png\]\] here/)).toBeInTheDocument();
+    expect(
+      screen.getByText(/Text with image !\[\[test\.png\]\] here/),
+    ).toBeInTheDocument();
   });
 });

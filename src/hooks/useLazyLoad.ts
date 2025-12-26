@@ -14,7 +14,7 @@ export function useLazyLoad() {
       },
       {
         rootMargin: "100px",
-      }
+      },
     );
 
     if (ref.current) {

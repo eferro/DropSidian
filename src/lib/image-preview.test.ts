@@ -38,13 +38,13 @@ describe("getImagePreviewUrl", () => {
     const result = await getImagePreviewUrl(
       "test-token",
       "/vault",
-      "image.png"
+      "image.png",
     );
 
     expect(result).toBe(mockLink);
     expect(dropboxClient.getTemporaryLink).toHaveBeenCalledWith(
       "test-token",
-      "/vault/image.png"
+      "/vault/image.png",
     );
   });
 
