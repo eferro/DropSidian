@@ -9,8 +9,16 @@ import { ViewMode } from "../components/ViewModeTabs";
 import FileList from "../components/FileList";
 import { useAuth } from "../context/AuthContext";
 import { getCurrentAccount, DropboxAccount } from "../lib/dropbox-client";
-import { getVaultPath, clearVaultPath } from "../lib/vault-storage";
-import { getInboxPath, clearInboxPath } from "../lib/inbox-storage";
+import {
+  getVaultPath,
+  clearVaultPath,
+  storeVaultPath,
+} from "../lib/vault-storage";
+import {
+  getInboxPath,
+  clearInboxPath,
+  storeInboxPath,
+} from "../lib/inbox-storage";
 
 function Home() {
   const { isAuthenticated, isLoading, logout, accessToken } = useAuth();
@@ -27,6 +35,11 @@ function Home() {
   const [refreshKey, setRefreshKey] = useState(0);
   const [viewMode, setViewMode] = useState<ViewMode>("inbox");
   const [currentVaultPath, setCurrentVaultPath] = useState<string | null>(null);
+  const [isReconfiguring, setIsReconfiguring] = useState(false);
+  const [previousConfig, setPreviousConfig] = useState<{
+    vault: string;
+    inbox: string;
+  } | null>(null);
 
   useEffect(() => {
     if (!accessToken) return;
@@ -53,6 +66,8 @@ function Home() {
       setVaultPath(vault);
       setInboxPath(inbox);
       setCurrentVaultPath(vault);
+      setIsReconfiguring(false);
+      setPreviousConfig(null);
     },
     [],
   );
@@ -82,11 +97,26 @@ function Home() {
   }, []);
 
   const handleReconfigure = useCallback(() => {
+    if (vaultPath && inboxPath) {
+      setPreviousConfig({ vault: vaultPath, inbox: inboxPath });
+    }
     clearVaultPath();
     clearInboxPath();
     setVaultPath(null);
     setInboxPath(null);
-  }, []);
+    setIsReconfiguring(true);
+  }, [vaultPath, inboxPath]);
+
+  const handleCancelReconfigure = useCallback(() => {
+    if (previousConfig) {
+      storeVaultPath(previousConfig.vault);
+      storeInboxPath(previousConfig.inbox);
+      setVaultPath(previousConfig.vault);
+      setInboxPath(previousConfig.inbox);
+      setPreviousConfig(null);
+    }
+    setIsReconfiguring(false);
+  }, [previousConfig]);
 
   if (isLoading) {
     return (
@@ -123,7 +153,10 @@ function Home() {
         onViewModeChange={needsSetup ? undefined : handleModeChange}
       />
       {needsSetup ? (
-        <SetupWizard onComplete={handleSetupComplete} />
+        <SetupWizard
+          onComplete={handleSetupComplete}
+          onCancel={isReconfiguring ? handleCancelReconfigure : undefined}
+        />
       ) : (
         <>
           {!selectedFile && (

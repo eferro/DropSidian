@@ -122,5 +122,41 @@ describe("SetupWizard", () => {
     expect(storeInboxPath).toHaveBeenCalledWith("selected-path");
     expect(onComplete).toHaveBeenCalledWith("/my-vault", "selected-path");
   });
+
+  it("shows cancel button when onCancel prop is provided", () => {
+    vi.mocked(getVaultPath).mockReturnValue(null);
+    vi.mocked(getInboxPath).mockReturnValue(null);
+
+    const onCancel = vi.fn();
+    render(<SetupWizard onComplete={() => {}} onCancel={onCancel} />);
+
+    expect(
+      screen.getByRole("button", { name: /cancel/i }),
+    ).toBeInTheDocument();
+  });
+
+  it("calls onCancel when cancel button is clicked", async () => {
+    vi.mocked(getVaultPath).mockReturnValue(null);
+    vi.mocked(getInboxPath).mockReturnValue(null);
+
+    const onCancel = vi.fn();
+    const user = userEvent.setup();
+    render(<SetupWizard onComplete={() => {}} onCancel={onCancel} />);
+
+    await user.click(screen.getByRole("button", { name: /cancel/i }));
+
+    expect(onCancel).toHaveBeenCalled();
+  });
+
+  it("does not show cancel button when onCancel prop is not provided", () => {
+    vi.mocked(getVaultPath).mockReturnValue(null);
+    vi.mocked(getInboxPath).mockReturnValue(null);
+
+    render(<SetupWizard onComplete={() => {}} />);
+
+    expect(
+      screen.queryByRole("button", { name: /cancel/i }),
+    ).not.toBeInTheDocument();
+  });
 });
 

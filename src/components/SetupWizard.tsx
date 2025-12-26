@@ -8,9 +8,10 @@ type SetupStep = "vault" | "inbox" | "complete";
 
 interface SetupWizardProps {
   onComplete: (vaultPath: string, inboxPath: string) => void;
+  onCancel?: () => void;
 }
 
-function SetupWizard({ onComplete }: SetupWizardProps) {
+function SetupWizard({ onComplete, onCancel }: SetupWizardProps) {
   const [step, setStep] = useState<SetupStep>("vault");
   const [vaultPath, setVaultPath] = useState<string | null>(null);
 
@@ -65,6 +66,15 @@ function SetupWizard({ onComplete }: SetupWizardProps) {
           Choose the root folder of your Obsidian vault in Dropbox.
         </p>
         <PathInput onSelect={handleVaultSelect} />
+        {onCancel && (
+          <button
+            type="button"
+            className={styles.cancelButton}
+            onClick={onCancel}
+          >
+            Cancel
+          </button>
+        )}
       </div>
     );
   }
@@ -84,6 +94,15 @@ function SetupWizard({ onComplete }: SetupWizardProps) {
           <strong>{vaultPath}</strong>
         </p>
         <PathInput onSelect={handleInboxSelect} basePath={vaultPath || ""} />
+        {onCancel && (
+          <button
+            type="button"
+            className={styles.cancelButton}
+            onClick={onCancel}
+          >
+            Cancel
+          </button>
+        )}
       </div>
     );
   }
